@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Business Analytics Dashboard</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+
+    <div class="container">
+
+        <header>
+            <h1>AI Business Analytics Dashboard</h1>
+            <p>Decision Support System for Retail Businesses</p>
+        </header>
+
+        <div class="case-study-selector">
+
+            <label for="company">
+                Select Case Study:
+            </label>
+
+            <select id="company">
+
+                <option>
+                    Moroccan Secrets
+                </option>
+
+                <option>
+                    Marwa
+                </option>
+
+            </select>
+
+        </div>
+
+        <section class="kpi-section">
+
+            <div class="card">
+                <h3>Total Revenue</h3>
+                <p>₦1,250,000</p>
+            </div>
+
+            <div class="card">
+                <h3>Net Profit Margin</h3>
+                <p>32%</p>
+            </div>
+
+            <div class="card">
+                <h3>ROI</h3>
+                <p>48%</p>
+            </div>
+
+            <div class="card">
+                <h3>Top Product</h3>
+                <p>Beldi Soap</p>
+            </div>
+
+        </section>
+
+        <section class="chart-section">
+
+            <div class="chart-card">
+    <h2>Revenue Trend</h2>
+
+    <div class="chart-container">
+        <canvas id="revenueChart"></canvas>
+    </div>
+</div>
+        </section>
+
+        <section class="chart-section">
+
+            <div class="chart-card">
+                <h2>Product Performance</h2>
+                <canvas id="productChart"></canvas>
+            </div>
+
+        </section>
+
+        <section class="alerts-section">
+
+            <h2>Inventory Alerts</h2>
+
+            <ul>
+                <li>Argan Oil stock below threshold</li>
+                <li>Aker Fassi inventory decreasing rapidly</li>
+                <li>Monitor Rose Hydrosol stock levels</li>
+            </ul>
+
+        </section>
+
+        <section class="recommendation-section">
+
+            <h2>AI Recommendations</h2>
+
+            <ul>
+                <li>Increase stock for Argan Oil</li>
+                <li>Promote Beldi Soap through marketing campaigns</li>
+                <li>Monitor February sales performance</li>
+            </ul>
+
+        </section>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+
+    const revenueCtx =
+    document.getElementById('revenueChart');
+
+    new Chart(revenueCtx, {
+
+        type: 'line',
+
+        data: {
+
+            labels: [
+                'January',
+                'February',
+                'March'
+            ],
+
+            datasets: [{
+
+                label: 'Revenue',
+
+                data: [
+                    1800000,
+                    1300000,
+                    2100000
+                ]
+
+            }]
+
+        }
+
+    });
+
+    const productCtx =
+document.getElementById('productChart');
+
+new Chart(productCtx, {
+
+    type: 'bar',
+
+    data: {
+
+        labels: [
+            'Beldi Soap',
+            'Argan Oil',
+            'Rose Hydrosol',
+            'Aker Fassi',
+            'Tbrima Powder',
+            'Kees Glove'
+        ],
+
+        datasets: [{
+
+            label: 'Revenue',
+
+            data: [
+                522500,
+                504000,
+                376000,
+                178200,
+                288000,
+                369000
+            ]
+
+        }]
+
+    }
+
+});
+    </script>
+
+</body>
+
+</html>
