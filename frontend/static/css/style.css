@@ -47,18 +47,16 @@ header h1 {
 
 .chart-card {
     background: white;
-    padding: 20px;
+    padding: 15px;
     border-radius: 12px;
-    margin-bottom: 25px;
     box-shadow: 0px 2px 8px rgba(0,0,0,0.1);
 
-    max-width: 700px;
-    margin-left: auto;
-    margin-right: auto;
+    height: 320px;
 }
 
-canvas {
-    max-height: 250px;
+.chart-card canvas {
+    width: 100% !important;
+    height: 220px !important;
 }
 
 .chart-placeholder {
@@ -139,16 +137,4 @@ nav a {
 
     border-radius: 6px;
 
-}
-
-.chart-container {
-    width: 400px;
-    height: 300px;
-    margin: auto;
-}
-
-.chart-container {
-    width: 350px;
-    height: 250px;
-    padding: 10px;
 }
