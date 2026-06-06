@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Business Analytics Dashboard</title>
+    <link rel="stylesheet" href="static/css/style.css">
+</head>
+<body>
+
+<div class="container">
+
+    <header>
+        <h1>AI Business Analytics Dashboard</h1>
+        <p>Decision Support System for Retail Businesses</p>
+    </header>
+
+    <!-- ─── UPLOAD SECTION ─────────────────────────────────── -->
+    <section class="upload-section">
+        <h2>Upload Business Data</h2>
+        <p class="upload-subtitle">Upload your CSV file to generate AI-powered analytics</p>
+
+        <form id="uploadForm" enctype="multipart/form-data">
+
+            <div class="upload-zone" id="uploadZone">
+                <div class="upload-icon">&#8679;</div>
+                <p class="upload-main">Drag &amp; drop your CSV file here</p>
+                <p class="upload-hint">or</p>
+                <label for="csvFile" class="btn-choose">Choose File</label>
+                <input type="file" id="csvFile" name="csv_file" accept=".csv" hidden>
+                <p class="upload-filename" id="uploadFilename">No file selected</p>
+            </div>
+
+            <div class="upload-controls">
+                <div class="upload-meta">
+                    <label for="companyName">Business Name</label>
+                    <input type="text" id="companyName" name="company_name" placeholder="e.g. Moroccan Secrets">
+                </div>
+                <button type="submit" class="btn-upload" id="btnUpload" disabled>
+                    Analyse Data
+                </button>
+            </div>
+
+            <div class="upload-status" id="uploadStatus" hidden>
+                <span class="status-spinner"></span>
+                <span id="uploadStatusText">Processing your data...</span>
+            </div>
+
+        </form>
+    </section>
+
+    <!-- ─── CASE STUDY SELECTOR ────────────────────────────── -->
+    <div class="case-study-selector">
+        <label for="company">View Report:</label>
+        <select id="company">
+            <option value="">-- Select a business --</option>
+            <!-- Jamal: populate these options dynamically from DB -->
+        </select>
+    </div>
+
+    <!-- ─── KPI CARDS ──────────────────────────────────────── -->
+    <section class="kpi-section">
+
+        <div class="card">
+            <h3>Total Revenue</h3>
+            <!-- Jamal: inject value into this <p> -->
+            <p id="kpi-revenue" class="kpi-value">--</p>
+        </div>
+
+        <div class="card">
+            <h3>Net Profit Margin</h3>
+            <p id="kpi-margin" class="kpi-value">--</p>
+        </div>
+
+        <div class="card">
+            <h3>ROI</h3>
+            <p id="kpi-roi" class="kpi-value">--</p>
+        </div>
+
+        <div class="card">
+            <h3>Top Product</h3>
+            <p id="kpi-top-product" class="kpi-value kpi-value--sm">--</p>
+        </div>
+
+    </section>
+
+    <!-- ─── CHARTS ─────────────────────────────────────────── -->
+    <section class="chart-section">
+        <div class="chart-card">
+            <h2>Revenue Trend</h2>
+            <div class="chart-container">
+                <canvas id="revenueChart"></canvas>
+            </div>
+            <!-- empty state shown when no data yet -->
+            <div class="chart-empty" id="revenueEmpty">
+                No data yet — upload a CSV to generate this chart
+            </div>
+        </div>
+    </section>
+
+    <section class="chart-section">
+        <div class="chart-card">
+            <h2>Product Performance</h2>
+            <canvas id="productChart"></canvas>
+            <div class="chart-empty" id="productEmpty">
+                No data yet — upload a CSV to generate this chart
+            </div>
+        </div>
+    </section>
+
+    <!-- ─── INVENTORY ALERTS ───────────────────────────────── -->
+    <section class="alerts-section">
+        <h2>Inventory Alerts</h2>
+        <!-- Jamal: populate this <ul> with <li> items from DB -->
+        <ul id="alerts-list">
+            <li class="empty-state">No alerts — data will appear after CSV upload</li>
+        </ul>
+    </section>
+
+    <!-- ─── AI RECOMMENDATIONS ────────────────────────────── -->
+    <section class="recommendation-section">
+        <h2>AI Recommendations</h2>
+        <!-- Jamal: populate this <ul> with <li> items from AI output -->
+        <ul id="rec-list">
+            <li class="empty-state">No recommendations yet — upload data to generate insights</li>
+        </ul>
+    </section>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="static/js/dashboard.js"></script>
+
+</body>
+</html>
