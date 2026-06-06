@@ -38,8 +38,8 @@ warnings.filterwarnings("ignore")
 
 # ── PATHS ─────────────────────────────────────────────────────────────────────
 # Adjust these paths to wherever your CSVs are saved locally
-MOROCCAN_CSV = "backend/dataset/moroccan_secrets_dataset.csv"
-MARWA_CSV    = "backend/dataset/marwa_dataset.csv"
+MOROCCAN_CSV = "backend/dataset/moroccan_secrets_dataset (2).csv"
+MARWA_CSV    = "backend/dataset/marwa_dataset (1).csv"
 MODEL_DIR    = "backend/model"
 
 os.makedirs(MODEL_DIR, exist_ok=True)
