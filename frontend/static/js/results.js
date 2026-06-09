@@ -1,244 +1,311 @@
-/**
- * results.js
- * Reads upload_id from URL → fetches data from backend → populates results page.
- *
- * URL format: results.html?upload_id=123
- *
- * The page already shows placeholder "--" values and empty state messages.
- * When data arrives, this script replaces them with real values and draws charts.
- *
- * ─── FOR JAMAL ────────────────────────────────────────────────────────────────
- * Uncomment the fetch block below and point it at get_report.php.
- *
- * Expected JSON from get_report.php:
- * {
- *   "company_name": "Moroccan Secrets",
- *   "industry":     "Skincare",
- *   "created_at":   "2024-06-09",
- *   "kpis": {
- *     "revenue":     "₦1,250,000",
- *     "net_profit":  "₦400,000",
- *     "margin":      "32%",
- *     "roi":         "48%",
- *     "top_product": "Beldi Soap"
- *   },
- *   "revenue_trend": {
- *     "labels": ["January", "February", "March"],
- *     "data":   [1800000, 1300000, 2100000]
- *   },
- *   "products": {
- *     "labels": ["Beldi Soap", "Argan Oil", ...],
- *     "data":   [522500, 504000, ...]
- *   },
- *   "alerts": [
- *     { "message": "Argan Oil stock low", "level": "high" }
- *   ],
- *   "recommendations": ["Promote Beldi Soap", "Restock Argan Oil"],
- *   "model_performance": {
- *     "r2": 0.97, "mae": 1250.5, "accuracy": 0.93, "model": "Random Forest"
- *   }
- * }
- * ─────────────────────────────────────────────────────────────────────────────
- */
+// Chart instances
+let revenueTrendChart = null;
+let productPerformanceChart = null;
 
-const params   = new URLSearchParams(window.location.search);
-const uploadId = params.get('upload_id');
-
-let revenueChart = null;
-let productChart  = null;
-
-window.addEventListener('DOMContentLoaded', () => {
-
-    // ── TODO (Jamal): uncomment when get_report.php is ready ──────────────────
-    //
-    // if (!uploadId) return; // no upload_id in URL, just show placeholders
-    //
-    // fetch(`../backend/api/get_report.php?upload_id=${encodeURIComponent(uploadId)}`)
-    //     .then(res => {
-    //         if (!res.ok) throw new Error('Server error');
-    //         return res.json();
-    //     })
-    //     .then(data => populateResults(data))
-    //     .catch(err => console.error('Could not load results:', err));
-    //
-    // ─────────────────────────────────────────────────────────────────────────
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    extractAndFetchUploadId();
 });
 
-// ─── POPULATE ALL SECTIONS ────────────────────────────────────────────────────
-// Jamal: call this with his JSON response — it fills everything in automatically
-function populateResults(data) {
+// Extract upload_id from URL and fetch data
+function extractAndFetchUploadId() {
+    const params = new URLSearchParams(window.location.search);
+    const uploadId = params.get('upload_id');
 
-    // ── Header ────────────────────────────────────────────────────────────────
-    setText('results-company-name', data.company_name);
-
-    if (data.industry) {
-        const badge = document.getElementById('results-industry');
-        badge.textContent = data.industry;
-        badge.hidden = false;
-    }
-    if (data.created_at) {
-        setText('results-date', data.created_at);
+    if (!uploadId || isNaN(uploadId)) {
+        console.error('Missing or invalid upload_id');
+        window.location.href = 'dashboard.html';
+        return;
     }
 
-    // ── KPIs ──────────────────────────────────────────────────────────────────
-    setText('kpi-revenue',     data.kpis.revenue);
-    setText('kpi-margin',      data.kpis.margin);
-    setText('kpi-roi',         data.kpis.roi);
-    setText('kpi-top-product', data.kpis.top_product);
+    fetchAnalyticsData(uploadId);
+}
 
-    if (data.kpis.net_profit) {
-        setText('kpi-revenue-sub', `Net profit: ${data.kpis.net_profit}`);
-    }
+// Fetch analytics data from backend
+function fetchAnalyticsData(uploadId) {
+    fetch('../../backend/api/results.php?upload_id=' + uploadId)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok: ' + response.status);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.error) {
+                throw new Error(data.error);
+            }
+            populateResultsPage(data);
+        })
+        .catch(error => {
+            console.error('Error fetching data:', error);
+            showErrorMessage('Failed to load analytics report. Please return to the dashboard.');
+        });
+}
 
-    // ── Charts ────────────────────────────────────────────────────────────────
-    if (data.revenue_trend && data.revenue_trend.labels.length > 0) {
-        renderRevenueChart(data.revenue_trend.labels, data.revenue_trend.data);
-    }
-    if (data.products && data.products.labels.length > 0) {
-        renderProductChart(data.products.labels, data.products.data);
-    }
+// Populate all results data on the page
+function populateResultsPage(data) {
+    try {
+        // Populate KPI metrics
+        document.getElementById('totalRevenue').textContent = formatCurrency(data.total_revenue);
+        document.getElementById('netProfit').textContent = formatCurrency(data.net_profit);
+        document.getElementById('profitMargin').textContent = (parseFloat(data.profit_margin) * 100).toFixed(2) + '%';
+        document.getElementById('topProduct').textContent = data.top_product || 'N/A';
 
-    // ── Alerts ────────────────────────────────────────────────────────────────
-    if (data.alerts && data.alerts.length > 0) {
-        renderAlerts(data.alerts);
-    }
+        // Populate industry badge
+        document.getElementById('industryBadge').textContent = data.industry || 'General';
 
-    // ── Recommendations ───────────────────────────────────────────────────────
-    if (data.recommendations && data.recommendations.length > 0) {
-        renderRecs(data.recommendations);
-    }
+        // Parse and render charts
+        const revenueTrendLabels = JSON.parse(data.revenue_trend_labels || '[]');
+        const revenueTrendData = JSON.parse(data.revenue_trend_data || '[]');
+        const productLabels = JSON.parse(data.product_labels || '[]');
+        const productData = JSON.parse(data.product_data || '[]');
 
-    // ── Model performance ─────────────────────────────────────────────────────
-    if (data.model_performance) {
-        const p = data.model_performance;
-        setText('model-r2',   p.r2       ?? '--');
-        setText('model-mae',  p.mae      ?? '--');
-        setText('model-acc',  p.accuracy ? (p.accuracy * 100).toFixed(1) + '%' : '--');
-        setText('model-name', p.model    ?? '--');
+        renderRevenueChart(revenueTrendLabels, revenueTrendData);
+        renderProductChart(productLabels, productData);
 
-        // Show model badge in recs footer
-        const badge = document.getElementById('model-badge');
-        if (badge && p.model) {
-            badge.textContent = p.model;
-            badge.hidden = false;
-        }
+        // Parse and display insights
+        const alerts = JSON.parse(data.alerts || '[]');
+        const recommendations = JSON.parse(data.recommendations || '[]');
 
-        // Show model performance section
-        document.getElementById('modelSection').hidden = false;
+        displayRisks(alerts);
+        displayRecommendations(recommendations);
+
+        // Display model diagnostics
+        document.getElementById('modelR2').textContent = (parseFloat(data.model_r2) * 100).toFixed(2) + '%';
+        document.getElementById('classifierAccuracy').textContent = (parseFloat(data.classifier_accuracy) * 100).toFixed(2) + '%';
+        document.getElementById('selectedModel').textContent = data.selected_model || 'Advanced Analytics Model';
+
+    } catch (error) {
+        console.error('Error populating results:', error);
+        showErrorMessage('Error displaying results. Please try again.');
     }
 }
 
-// ─── HELPERS ──────────────────────────────────────────────────────────────────
-function setText(id, value) {
-    const el = document.getElementById(id);
-    if (el && value !== null && value !== undefined) el.textContent = value;
-}
-
-// ─── ALERTS ───────────────────────────────────────────────────────────────────
-function renderAlerts(alerts) {
-    const list = document.getElementById('alerts-list');
-    // Supports both string array and object array { message, level }
-    list.innerHTML = alerts.map(a => {
-        const msg   = typeof a === 'string' ? a : a.message;
-        const level = typeof a === 'object' ? (a.level || 'low') : 'low';
-        return `
-            <li class="alert-item alert-item--${level}">
-                <span class="alert-dot alert-dot--${level}"></span>
-                ${msg}
-            </li>`;
-    }).join('');
-}
-
-// ─── RECOMMENDATIONS ──────────────────────────────────────────────────────────
-function renderRecs(recs) {
-    const list = document.getElementById('rec-list');
-    list.innerHTML = recs.map((r, i) => `
-        <li class="rec-item">
-            <span class="rec-num">${String(i + 1).padStart(2, '0')}</span>
-            ${r}
-        </li>`
-    ).join('');
-}
-
-// ─── REVENUE CHART ────────────────────────────────────────────────────────────
+// Render revenue trend chart
 function renderRevenueChart(labels, data) {
-    // Hide empty state, show canvas
-    document.getElementById('revenueEmpty').hidden = true;
-    document.getElementById('revenueChartContainer').hidden = false;
+    const ctx = document.getElementById('revenueTrendChart').getContext('2d');
 
-    const ctx = document.getElementById('revenueChart');
-    if (revenueChart) revenueChart.destroy();
+    // Clear old chart if exists
+    if (revenueTrendChart) {
+        revenueTrendChart.destroy();
+    }
 
-    revenueChart = new Chart(ctx, {
+    revenueTrendChart = new Chart(ctx, {
         type: 'line',
         data: {
-            labels,
+            labels: labels,
             datasets: [{
-                label: 'Revenue',
-                data,
-                borderColor: '#1f3c88',
-                backgroundColor: 'rgba(31,60,136,0.08)',
-                borderWidth: 2.5,
+                label: 'Monthly Revenue',
+                data: data,
+                borderColor: '#0066cc',
+                backgroundColor: 'rgba(0, 102, 204, 0.1)',
+                borderWidth: 3,
+                tension: 0.4,
+                fill: true,
+                pointBackgroundColor: '#0066cc',
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2,
                 pointRadius: 5,
-                pointBackgroundColor: '#1f3c88',
-                tension: 0.35,
-                fill: true
+                pointHoverRadius: 7,
+                pointHoverBackgroundColor: '#003d99'
             }]
         },
         options: {
             responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top',
+                    labels: {
+                        color: '#1a1a1a',
+                        font: {
+                            weight: '600',
+                            size: 14
+                        },
+                        padding: 15
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    padding: 12,
+                    borderRadius: 6,
+                    titleFont: { size: 14, weight: 'bold' },
+                    bodyFont: { size: 13 },
+                    callbacks: {
+                        label: function(context) {
+                            return 'Revenue: $' + context.parsed.y.toLocaleString();
+                        }
+                    }
+                }
+            },
             scales: {
-                x: { grid: { display: false } },
                 y: {
-                    grid: { color: '#f0f2f8' },
-                    ticks: { callback: v => '₦' + (v / 1000).toFixed(0) + 'k' }
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)'
+                    },
+                    ticks: {
+                        color: '#666666',
+                        font: { size: 12 },
+                        callback: function(value) {
+                            return '$' + (value / 1000).toFixed(0) + 'K';
+                        }
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        color: '#666666',
+                        font: { size: 12 }
+                    }
                 }
             }
         }
     });
 }
 
-// ─── PRODUCT CHART ────────────────────────────────────────────────────────────
+// Render product performance chart
 function renderProductChart(labels, data) {
-    // Hide empty state, show canvas
-    document.getElementById('productEmpty').hidden = true;
-    document.getElementById('productChartContainer').hidden = false;
+    const ctx = document.getElementById('productPerformanceChart').getContext('2d');
 
-    const ctx = document.getElementById('productChart');
-    if (productChart) productChart.destroy();
+    // Clear old chart if exists
+    if (productPerformanceChart) {
+        productPerformanceChart.destroy();
+    }
 
-    const colors = [
-        'rgba(31,60,136,0.8)',  'rgba(26,158,106,0.8)',
-        'rgba(201,123,0,0.8)',  'rgba(201,74,48,0.8)',
-        'rgba(124,61,201,0.8)', 'rgba(14,159,168,0.8)'
-    ];
-
-    productChart = new Chart(ctx, {
+    productPerformanceChart = new Chart(ctx, {
         type: 'bar',
         data: {
-            labels,
+            labels: labels,
             datasets: [{
-                label: 'Revenue',
-                data,
-                backgroundColor: labels.map((_, i) => colors[i % colors.length]),
-                borderRadius: 5,
-                borderSkipped: false
+                label: 'Sales Volume',
+                data: data,
+                backgroundColor: '#0066cc',
+                borderColor: '#003d99',
+                borderWidth: 1,
+                borderRadius: 8,
+                borderSkipped: false,
+                hoverBackgroundColor: '#003d99'
             }]
         },
         options: {
             responsive: true,
-            maintainAspectRatio: false,
-            indexAxis: 'y',
-            plugins: { legend: { display: false } },
-            scales: {
-                x: {
-                    grid: { color: '#f0f2f8' },
-                    ticks: { callback: v => '₦' + (v / 1000).toFixed(0) + 'k' }
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top',
+                    labels: {
+                        color: '#1a1a1a',
+                        font: {
+                            weight: '600',
+                            size: 14
+                        },
+                        padding: 15
+                    }
                 },
-                y: { grid: { display: false } }
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    padding: 12,
+                    borderRadius: 6,
+                    titleFont: { size: 14, weight: 'bold' },
+                    bodyFont: { size: 13 },
+                    callbacks: {
+                        label: function(context) {
+                            return 'Volume: ' + context.parsed.y.toLocaleString() + ' units';
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)'
+                    },
+                    ticks: {
+                        color: '#666666',
+                        font: { size: 12 }
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        color: '#666666',
+                        font: { size: 12 }
+                    }
+                }
             }
         }
     });
+}
+
+// Display operational risks/alerts
+function displayRisks(alerts) {
+    const risksList = document.getElementById('risksList');
+    risksList.innerHTML = '';
+
+    if (Array.isArray(alerts) && alerts.length > 0) {
+        alerts.forEach(alert => {
+            const li = document.createElement('li');
+            li.textContent = alert;
+            risksList.appendChild(li);
+        });
+    } else {
+        const li = document.createElement('li');
+        li.textContent = 'No critical operational risks identified. All systems operating normally.';
+        risksList.appendChild(li);
+    }
+}
+
+// Display AI recommendations
+function displayRecommendations(recommendations) {
+    const recList = document.getElementById('recommendationsList');
+    recList.innerHTML = '';
+
+    if (Array.isArray(recommendations) && recommendations.length > 0) {
+        recommendations.forEach(rec => {
+            const li = document.createElement('li');
+            li.textContent = rec;
+            recList.appendChild(li);
+        });
+    } else {
+        const li = document.createElement('li');
+        li.textContent = 'Recommendations will be generated after further analysis.';
+        recList.appendChild(li);
+    }
+}
+
+// Format currency values
+function formatCurrency(value) {
+    if (!value) return '$0.00';
+    const num = parseFloat(value);
+    return '$' + num.toLocaleString('en-US', { 
+        minimumFractionDigits: 2, 
+        maximumFractionDigits: 2 
+    });
+}
+
+// Show error message
+function showErrorMessage(message) {
+    const resultsContent = document.querySelector('.results-content');
+    if (resultsContent) {
+        const errorDiv = document.createElement('div');
+        errorDiv.style.cssText = `
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 20px 0;
+            font-size: 14px;
+        `;
+        errorDiv.textContent = message;
+        resultsContent.insertBefore(errorDiv, resultsContent.firstChild);
+    }
 }

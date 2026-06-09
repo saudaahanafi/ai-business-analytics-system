@@ -4,182 +4,122 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Business Analytics Dashboard</title>
-
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="../static/css/dashboard.css">
 </head>
-
 <body>
-
     <div class="container">
-
-        <header>
-            <h1>AI Business Analytics Dashboard</h1>
-            <p>Decision Support System for Retail Businesses</p>
+        <!-- Header Section -->
+        <header class="header">
+            <h1>AI-Powered Business Analytics</h1>
+            <p>Upload your sales data and get instant AI-driven insights</p>
         </header>
 
-        <div class="case-study-selector">
+        <main class="main-content">
+            <!-- Upload Section -->
+            <section class="upload-section">
+                <div class="upload-card">
+                    <h2>Upload Your Sales Data</h2>
+                    
+                    <!-- Drag and Drop Area -->
+                    <div class="drop-zone" id="dropZone">
+                        <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="17 8 12 3 7 8"></polyline>
+                            <line x1="12" y1="3" x2="12" y2="15"></line>
+                        </svg>
+                        <p class="drop-text">Drag and drop your CSV file here or click to browse</p>
+                        <input type="file" id="fileInput" accept=".csv" class="file-input">
+                    </div>
 
-            <label for="company">
-                Select Case Study:
-            </label>
+                    <!-- Business Name Input -->
+                    <div class="form-group">
+                        <label for="companyName">Business Name:</label>
+                        <input 
+                            type="text" 
+                            id="companyName" 
+                            placeholder="Enter your company name"
+                            class="input-field"
+                        >
+                    </div>
 
-            <select id="company">
+                    <!-- Submit Button -->
+                    <button id="analyzeBtn" class="btn-primary">Analyse Data</button>
+                    <div id="uploadStatus" class="status-message"></div>
+                </div>
+            </section>
 
-                <option>
-                    Moroccan Secrets
-                </option>
+            <!-- Sample Selection Section -->
+            <section class="samples-section">
+                <div class="samples-card">
+                    <h2>Explore Historical Demo Reports</h2>
+                    <select id="sampleSelector" class="select-input">
+                        <option value="">-- Select a business to view data --</option>
+                    </select>
+                </div>
+            </section>
 
-                <option>
-                    Marwa
-                </option>
+            <!-- Analytics Output Section (Hidden by Default) -->
+            <section id="analyticsSection" class="analytics-section hidden">
+                <!-- KPI Cards -->
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <h3>Total Revenue</h3>
+                        <p id="totalRevenue" class="kpi-value">--</p>
+                    </div>
+                    <div class="kpi-card">
+                        <h3>Net Profit</h3>
+                        <p id="netProfit" class="kpi-value">--</p>
+                    </div>
+                    <div class="kpi-card">
+                        <h3>Profit Margin</h3>
+                        <p id="profitMargin" class="kpi-value">--</p>
+                    </div>
+                    <div class="kpi-card">
+                        <h3>Top Product</h3>
+                        <p id="topProduct" class="kpi-value">--</p>
+                    </div>
+                </div>
 
-            </select>
+                <!-- Charts Section -->
+                <div class="charts-grid">
+                    <div class="chart-container">
+                        <h3>Revenue Trend</h3>
+                        <canvas id="revenueTrendChart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <h3>Product Performance</h3>
+                        <canvas id="productPerformanceChart"></canvas>
+                    </div>
+                </div>
 
-        </div>
+                <!-- Insights Section -->
+                <div class="insights-grid">
+                    <div class="insight-card">
+                        <h3>Operational Risks</h3>
+                        <ul id="risksList" class="insights-list">
+                            <li>Loading...</li>
+                        </ul>
+                    </div>
+                    <div class="insight-card">
+                        <h3>AI Recommendations</h3>
+                        <ul id="recommendationsList" class="insights-list">
+                            <li>Loading...</li>
+                        </ul>
+                    </div>
+                </div>
 
-        <section class="kpi-section">
-
-            <div class="card">
-                <h3>Total Revenue</h3>
-                <p>₦1,250,000</p>
-            </div>
-
-            <div class="card">
-                <h3>Net Profit Margin</h3>
-                <p>32%</p>
-            </div>
-
-            <div class="card">
-                <h3>ROI</h3>
-                <p>48%</p>
-            </div>
-
-            <div class="card">
-                <h3>Top Product</h3>
-                <p>Beldi Soap</p>
-            </div>
-
-        </section>
-
-        <section class="chart-section">
-
-            <div class="chart-card">
-    <h2>Revenue Trend</h2>
-
-    <div class="chart-container">
-        <canvas id="revenueChart"></canvas>
+                <!-- Model Diagnostics -->
+                <div class="diagnostics-footer">
+                    <p><strong>Model R² Score:</strong> <span id="modelR2">--</span></p>
+                    <p><strong>Classifier Accuracy:</strong> <span id="classifierAccuracy">--</span></p>
+                    <p><strong>Selected Model:</strong> <span id="selectedModel">--</span></p>
+                </div>
+            </section>
+        </main>
     </div>
-</div>
-        </section>
 
-        <section class="chart-section">
-
-            <div class="chart-card">
-                <h2>Product Performance</h2>
-                <canvas id="productChart"></canvas>
-            </div>
-
-        </section>
-
-        <section class="alerts-section">
-
-            <h2>Inventory Alerts</h2>
-
-            <ul>
-                <li>Argan Oil stock below threshold</li>
-                <li>Aker Fassi inventory decreasing rapidly</li>
-                <li>Monitor Rose Hydrosol stock levels</li>
-            </ul>
-
-        </section>
-
-        <section class="recommendation-section">
-
-            <h2>AI Recommendations</h2>
-
-            <ul>
-                <li>Increase stock for Argan Oil</li>
-                <li>Promote Beldi Soap through marketing campaigns</li>
-                <li>Monitor February sales performance</li>
-            </ul>
-
-        </section>
-
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-    <script>
-
-    const revenueCtx =
-    document.getElementById('revenueChart');
-
-    new Chart(revenueCtx, {
-
-        type: 'line',
-
-        data: {
-
-            labels: [
-                'January',
-                'February',
-                'March'
-            ],
-
-            datasets: [{
-
-                label: 'Revenue',
-
-                data: [
-                    1800000,
-                    1300000,
-                    2100000
-                ]
-
-            }]
-
-        }
-
-    });
-
-    const productCtx =
-document.getElementById('productChart');
-
-new Chart(productCtx, {
-
-    type: 'bar',
-
-    data: {
-
-        labels: [
-            'Beldi Soap',
-            'Argan Oil',
-            'Rose Hydrosol',
-            'Aker Fassi',
-            'Tbrima Powder',
-            'Kees Glove'
-        ],
-
-        datasets: [{
-
-            label: 'Revenue',
-
-            data: [
-                522500,
-                504000,
-                376000,
-                178200,
-                288000,
-                369000
-            ]
-
-        }]
-
-    }
-
-});
-    </script>
-
+    <script src="../static/js/dashboard.js"></script>
 </body>
-
 </html>
+  

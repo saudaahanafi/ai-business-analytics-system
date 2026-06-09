@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics Results</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="../static/css/results.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Navigation Header -->
+        <header class="results-header">
+            <a href="dashboard.html" class="back-link">← Back to Upload Hub</a>
+            <h1>Analytics Report</h1>
+        </header>
+
+        <main class="results-content">
+            <!-- Industry Badge -->
+            <div class="industry-badge">
+                <span>Industry: <strong id="industryBadge">--</strong></span>
+            </div>
+
+            <!-- Financial Performance Row -->
+            <section class="financial-section">
+                <div class="kpi-card">
+                    <h3>Total Revenue</h3>
+                    <p id="totalRevenue" class="kpi-value">--</p>
+                </div>
+                <div class="kpi-card">
+                    <h3>Net Profit</h3>
+                    <p id="netProfit" class="kpi-value">--</p>
+                </div>
+                <div class="kpi-card">
+                    <h3>Profit Margin / ROI</h3>
+                    <p id="profitMargin" class="kpi-value">--</p>
+                </div>
+                <div class="kpi-card">
+                    <h3>Top Selling Product</h3>
+                    <p id="topProduct" class="kpi-value">--</p>
+                </div>
+            </section>
+
+            <!-- Charts Row -->
+            <section class="charts-section">
+                <div class="chart-container">
+                    <h2>Revenue Trend Analysis</h2>
+                    <canvas id="revenueTrendChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <h2>Product Performance Ranking</h2>
+                    <canvas id="productPerformanceChart"></canvas>
+                </div>
+            </section>
+
+            <!-- AI Insights Row -->
+            <section class="insights-section">
+                <div class="insight-panel">
+                    <h2>Operational Inventory Critical Risks & Warnings</h2>
+                    <div class="alert-container">
+                        <ul id="risksList" class="risks-list">
+                            <li class="loading-item">Loading risk analysis...</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="insight-panel">
+                    <h2>Strategic Machine Learning Directives & Action Items</h2>
+                    <div class="recommendations-container">
+                        <ul id="recommendationsList" class="recommendations-list">
+                            <li class="loading-item">Loading recommendations...</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Model Diagnostics Footer -->
+            <footer class="diagnostics-section">
+                <div class="diagnostic-item">
+                    <span class="diagnostic-label">Model Engine Variant:</span>
+                    <span id="selectedModel" class="diagnostic-value">--</span>
+                </div>
+                <div class="diagnostic-item">
+                    <span class="diagnostic-label">R² Determination Score:</span>
+                    <span id="modelR2" class="diagnostic-value">--</span>
+                </div>
+                <div class="diagnostic-item">
+                    <span class="diagnostic-label">Classifier Accuracy Performance:</span>
+                    <span id="classifierAccuracy" class="diagnostic-value">--</span>
+                </div>
+            </footer>
+        </main>
+    </div>
+
+    <script src="../static/js/results.js"></script>
+</body>
+</html>
