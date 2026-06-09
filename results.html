@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics Results</title>
+    <link rel="stylesheet" href="static/css/style.css">
+    <link rel="stylesheet" href="static/css/results.css">
+</head>
+<body>
+
+<div class="container">
+
+    <!-- TOP BAR -->
+    <div class="results-topbar">
+        <a href="dashboard.html" class="btn-back">&#8592; Back to Dashboard</a>
+        <button class="btn-print" onclick="window.print()">&#128438; Print Report</button>
+    </div>
+
+    <!-- HEADER -->
+    <header class="results-header">
+        <div>
+            <h1>Analytics Report</h1>
+            <!-- Jamal: set this via results.js → setText('results-company-name', data.company_name) -->
+            <p id="results-company-name" class="results-company"></p>
+        </div>
+        <div class="results-meta">
+            <!-- Jamal: set via results.js → setText('results-industry', data.industry) -->
+            <span class="results-badge" id="results-industry" hidden></span>
+            <span class="results-date" id="results-date"></span>
+        </div>
+    </header>
+
+    <!-- ─── KPI CARDS ─────────────────────────────────────────── -->
+    <section class="kpi-section">
+
+        <div class="card">
+            <div class="card-icon card-icon--blue">&#9650;</div>
+            <div>
+                <h3>Total Revenue</h3>
+                <!-- Jamal: results.js → setText('kpi-revenue', data.kpis.revenue) -->
+                <p id="kpi-revenue" class="kpi-value">--</p>
+                <p id="kpi-revenue-sub" class="kpi-sub"></p>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-icon card-icon--green">&#9670;</div>
+            <div>
+                <h3>Net Profit Margin</h3>
+                <!-- Jamal: results.js → setText('kpi-margin', data.kpis.margin) -->
+                <p id="kpi-margin" class="kpi-value">--</p>
+                <p class="kpi-sub">Profit as % of revenue</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-icon card-icon--amber">&#9632;</div>
+            <div>
+                <h3>ROI</h3>
+                <!-- Jamal: results.js → setText('kpi-roi', data.kpis.roi) -->
+                <p id="kpi-roi" class="kpi-value">--</p>
+                <p class="kpi-sub">Return on investment</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-icon card-icon--coral">&#9733;</div>
+            <div>
+                <h3>Top Product</h3>
+                <!-- Jamal: results.js → setText('kpi-top-product', data.kpis.top_product) -->
+                <p id="kpi-top-product" class="kpi-value kpi-value--sm">--</p>
+                <p class="kpi-sub">Highest revenue</p>
+            </div>
+        </div>
+
+    </section>
+
+    <!-- ─── REVENUE TREND CHART ───────────────────────────────── -->
+    <section class="chart-section">
+        <div class="chart-card">
+            <div class="chart-card-header">
+                <h2>Revenue Trend</h2>
+                <span class="chart-tag">Monthly</span>
+            </div>
+            <!--
+                Canvas is always rendered.
+                Empty state shown when no data yet.
+                Jamal: results.js → renderRevenueChart(data.revenue_trend.labels, data.revenue_trend.data)
+                       will hide the empty state and draw the chart automatically.
+            -->
+            <div class="chart-container" id="revenueChartContainer" hidden>
+                <canvas id="revenueChart"></canvas>
+            </div>
+            <div class="chart-empty" id="revenueEmpty">
+                No data yet — upload a CSV to generate this chart
+            </div>
+        </div>
+    </section>
+
+    <!-- ─── PRODUCT PERFORMANCE CHART ───────────────────────────── -->
+    <section class="chart-section">
+        <div class="chart-card">
+            <div class="chart-card-header">
+                <h2>Product Performance</h2>
+                <span class="chart-tag">By Revenue</span>
+            </div>
+            <!--
+                Jamal: results.js → renderProductChart(data.products.labels, data.products.data)
+            -->
+            <div class="chart-container" id="productChartContainer" hidden>
+                <canvas id="productChart"></canvas>
+            </div>
+            <div class="chart-empty" id="productEmpty">
+                No data yet — upload a CSV to generate this chart
+            </div>
+        </div>
+    </section>
+
+    <!-- ─── ALERTS + RECOMMENDATIONS ─────────────────────────── -->
+    <div class="lower-row">
+
+        <section class="alerts-section">
+            <h2>&#9888; Inventory Alerts</h2>
+            <!--
+                Jamal: results.js → renderAlerts(data.alerts)
+                Each item: { "message": "...", "level": "high|medium|low" }
+            -->
+            <ul id="alerts-list">
+                <li class="empty-state">No alerts — data will appear after CSV upload</li>
+            </ul>
+        </section>
+
+        <section class="recommendation-section">
+            <h2>&#9889; AI Recommendations</h2>
+            <!--
+                Jamal: results.js → renderRecs(data.recommendations)
+                Each item is a plain string
+            -->
+            <ul id="rec-list">
+                <li class="empty-state">No recommendations yet — upload data to generate insights</li>
+            </ul>
+            <div class="rec-footer">
+                <span class="ai-label">&#128161; Generated by AI model</span>
+                <span id="model-badge" class="model-badge" hidden></span>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- ─── MODEL PERFORMANCE ─────────────────────────────────── -->
+    <!--
+        Jamal: this section is hidden until data arrives.
+        results.js shows it via: document.getElementById('modelSection').hidden = false
+    -->
+    <section class="model-section" id="modelSection" hidden>
+        <h2>Model Performance</h2>
+        <div class="model-grid">
+            <div class="model-card">
+                <p class="model-label">Random Forest R²</p>
+                <p class="model-value" id="model-r2">--</p>
+            </div>
+            <div class="model-card">
+                <p class="model-label">Mean Abs. Error</p>
+                <p class="model-value" id="model-mae">--</p>
+            </div>
+            <div class="model-card">
+                <p class="model-label">Demand Accuracy</p>
+                <p class="model-value" id="model-acc">--</p>
+            </div>
+            <div class="model-card">
+                <p class="model-label">Selected Model</p>
+                <p class="model-value model-value--sm" id="model-name">--</p>
+            </div>
+        </div>
+    </section>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="static/js/results.js"></script>
+
+</body>
+</html>
