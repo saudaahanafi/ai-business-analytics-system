@@ -216,3 +216,8 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+# Ignore dataset backups
+backend/dataset/*.csv
+
+# Ignore heavy trained model brains
+backend/model/*.pkl   

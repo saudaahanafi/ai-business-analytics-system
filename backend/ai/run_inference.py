@@ -32,8 +32,8 @@ DB_CONFIG = {
     "host":     "localhost",
     "user":     "root",         # Jamal: update this
     "password": "",             # Jamal: update this
-    "database": "ai_business_analytics"  # Jamal: update this
-}
+    "database": "business_analytics_db"  # Jamal: update this
+}  
 
 MODEL_DIR = os.path.join(os.path.dirname(__file__), "..", "model")
 
