@@ -1,13 +1,14 @@
 <?php
+if (ob_get_length()) ob_clean();
 header('Content-Type: application/json');
 
-// Include database connection - dynamically steps out of backend/api/ and looks in backend/config/
+// Step out of api/ to find backend/config/database.php
 include dirname(__DIR__) . '/config/database.php';
 
 // Action A: Fetch completed samples for dropdown
 if (isset($_GET['fetch_samples']) && $_GET['fetch_samples'] === 'true') {
     try {
-        $query = "SELECT id, company_name FROM uploads WHERE status = 'completed' ORDER BY id DESC";
+        $query = "SELECT id, company_name FROM uploads WHERE status = 'completed' AND id IN (1, 2) ORDER BY id DESC";
         $stmt = $pdo->query($query);
         $rows = $stmt->fetchAll();
         
@@ -18,7 +19,6 @@ if (isset($_GET['fetch_samples']) && $_GET['fetch_samples'] === 'true') {
                 'company_name' => $row['company_name']
             ];
         }
-        
         echo json_encode($samples);
     } catch (PDOException $e) {
         http_response_code(500);
@@ -31,10 +31,11 @@ if (isset($_GET['fetch_samples']) && $_GET['fetch_samples'] === 'true') {
 if (isset($_GET['upload_id'])) {
     $upload_id = intval($_GET['upload_id']);
     
+    // FIXED: Added sa.currency to select string array list
     $query = "
         SELECT 
             u.id, u.user_id, u.company_name, u.uploaded_at,
-            sa.total_revenue, sa.net_profit, sa.profit_margin, sa.roi, 
+            sa.total_revenue, sa.net_profit, sa.profit_margin, sa.roi, sa.currency, 
             sa.top_product, sa.revenue_trend_labels, sa.revenue_trend_data,
             sa.product_labels, sa.product_data, sa.industry,
             ar.alerts, ar.recommendations, ar.model_r2, ar.classifier_accuracy, ar.selected_model
@@ -62,20 +63,19 @@ if (isset($_GET['upload_id'])) {
     exit;
 }
 
-// Action C: Handle file upload and processing
+// Action C: Handle file upload and sequential automated ML process stream
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['csv_file'])) {
     $company_name = isset($_POST['company_name']) ? trim($_POST['company_name']) : 'Unknown';
     $csv_file = $_FILES['csv_file'];
     
-    // Validate file upload
     if ($csv_file['error'] !== UPLOAD_ERR_OK) {
         http_response_code(400);
         echo json_encode(['error' => 'File upload failed']);
         exit;
     }
     
-    // Create upload entry with pending status
-    $user_id = 1; // Placeholder for user authentication
+    // Testing Identity (Swap with session data later)
+    $user_id = 1; 
     $status = 'pending';
     $uploaded_at = date('Y-m-d H:i:s');
     
@@ -94,44 +94,53 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['csv_file'])) {
         ]);
         $upload_id = $pdo->lastInsertId();
         
-        // Steps out of 'api' and 'backend' folders to reach main root dataset folder
-        $dataset_dir = dirname(__DIR__, 2) . '/dataset';
+        // Target paths aligned with backend root directory tree layout
+        $dataset_dir = dirname(__DIR__) . '/dataset';
         if (!is_dir($dataset_dir)) {
             mkdir($dataset_dir, 0755, true);
         }
         
-        // Save file with unique name
         $filename = 'upload_' . $upload_id . '_' . time() . '.csv';
         $saved_file_path = $dataset_dir . '/' . $filename;
         
-        if (move_uploaded_file($csv_file['tmp_name'], $saved_file_path)) {
-            // Update uploads table with file path
+       if (move_uploaded_file($csv_file['tmp_name'], $saved_file_path)) {
             $update_query = "UPDATE uploads SET saved_file_path = :saved_file_path WHERE id = :id";
             $update_stmt = $pdo->prepare($update_query);
-            $update_stmt->execute([
-                'saved_file_path' => $saved_file_path,
-                'id' => $upload_id
-            ]);
+            $update_stmt->execute(['saved_file_path' => $saved_file_path, 'id' => $upload_id]);
             
-            // Steps out of 'api' and 'backend' folders to reach main root ai folder
-            $python_script = dirname(__DIR__, 2) . '/ai/run_inference.py';
-            $cmd = "python \"" . $python_script . "\" \"" . $saved_file_path . "\" " . $upload_id;
-            shell_exec($cmd);
-            
-            echo json_encode(['success' => true, 'upload_id' => $upload_id]);
+            // ── PROCESS A: TRIGGER CUSTOM DYNAMIC RE-TRAINING ──
+            $train_script = dirname(__DIR__) . '/model/train_model.py';
+            $train_cmd = "py \"" . $train_script . "\" \"" . $saved_file_path . "\" \"" . $user_id . "\" 2>&1";
+            exec($train_cmd, $train_output, $train_return);
+
+            // ── PROCESS B: EXECUTE LIVE KPI & FORECASTING INFERENCE ──
+            $python_script = dirname(__DIR__) . '/ai/run_inference.py';
+            $inference_cmd = "py \"" . $python_script . "\" \"" . $saved_file_path . "\" \"" . $upload_id . "\" \"" . $user_id . "\" 2>&1";
+            exec($inference_cmd, $inf_output, $inf_return);
+
+            // Clear any previous output buffer content
+            if (ob_get_length()) ob_clean();
+
+            // Check if BOTH were successful
+            if ($train_return === 0 && $inf_return === 0) {
+                echo json_encode(['success' => true, 'upload_id' => $upload_id]);
+            } else {
+                http_response_code(400); 
+                $error_msg = !empty($inf_output) ? end($inf_output) : "Data processing failed.";
+                echo json_encode(['error' => $error_msg]);
+            }
         } else {
             http_response_code(500);
             echo json_encode(['error' => 'Failed to save file']);
         }
+
     } catch (PDOException $e) {
         http_response_code(500);
         echo json_encode(['error' => 'Database error: ' . $e->getMessage()]);
     }
-    
     exit;
 }
 
-// Fallback error if no valid action/request rules match
 http_response_code(400);
 echo json_encode(['error' => 'Invalid request']);
 ?>

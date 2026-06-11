@@ -23,7 +23,8 @@ function extractAndFetchUploadId() {
 
 // Fetch analytics data from backend
 function fetchAnalyticsData(uploadId) {
-    fetch('../../backend/api/results.php?upload_id=' + uploadId)
+    // FIXED PATH: Applied root-relative endpoint targeting results report processing data streams
+    fetch('/ai-business-analytics-system/backend/api/results.php?upload_id=' + uploadId)
         .then(response => {
             if (!response.ok) {
                 throw new Error('Network response was not ok: ' + response.status);
@@ -45,10 +46,11 @@ function fetchAnalyticsData(uploadId) {
 // Populate all results data on the page
 function populateResultsPage(data) {
     try {
-        // Populate KPI metrics
-        document.getElementById('totalRevenue').textContent = formatCurrency(data.total_revenue);
-        document.getElementById('netProfit').textContent = formatCurrency(data.net_profit);
-        document.getElementById('profitMargin').textContent = (parseFloat(data.profit_margin) * 100).toFixed(2) + '%';
+        const activeCurrency = data.currency || "USD";
+
+        document.getElementById('totalRevenue').textContent = formatCurrency(data.total_revenue, activeCurrency);
+        document.getElementById('netProfit').textContent = formatCurrency(data.net_profit, activeCurrency);
+        document.getElementById('profitMargin').textContent = parseFloat(data.profit_margin) .toFixed(1) + '%';  
         document.getElementById('topProduct').textContent = data.top_product || 'N/A';
 
         // Populate industry badge
@@ -60,8 +62,8 @@ function populateResultsPage(data) {
         const productLabels = JSON.parse(data.product_labels || '[]');
         const productData = JSON.parse(data.product_data || '[]');
 
-        renderRevenueChart(revenueTrendLabels, revenueTrendData);
-        renderProductChart(productLabels, productData);
+        renderRevenueChart(revenueTrendLabels, revenueTrendData, activeCurrency);
+        renderProductChart(productLabels, productData, activeCurrency);
 
         // Parse and display insights
         const alerts = JSON.parse(data.alerts || '[]');
@@ -82,7 +84,7 @@ function populateResultsPage(data) {
 }
 
 // Render revenue trend chart
-function renderRevenueChart(labels, data) {
+function renderRevenueChart(labels, data, currencyCode) {
     const ctx = document.getElementById('revenueTrendChart').getContext('2d');
 
     // Clear old chart if exists
@@ -95,7 +97,7 @@ function renderRevenueChart(labels, data) {
         data: {
             labels: labels,
             datasets: [{
-                label: 'Monthly Revenue',
+                label: `Monthly Revenue (${currencyCode.toUpperCase()})`,
                 data: data,
                 borderColor: '#0066cc',
                 backgroundColor: 'rgba(0, 102, 204, 0.1)',
@@ -134,7 +136,7 @@ function renderRevenueChart(labels, data) {
                     bodyFont: { size: 13 },
                     callbacks: {
                         label: function(context) {
-                            return 'Revenue: $' + context.parsed.y.toLocaleString();
+                            return 'Revenue: ' + formatCurrency(context.parsed.y, currencyCode);
                         }
                     }
                 }
@@ -149,7 +151,7 @@ function renderRevenueChart(labels, data) {
                         color: '#666666',
                         font: { size: 12 },
                         callback: function(value) {
-                            return '$' + (value / 1000).toFixed(0) + 'K';
+                            return formatCurrency(value, currencyCode);
                         }
                     }
                 },
@@ -168,7 +170,7 @@ function renderRevenueChart(labels, data) {
 }
 
 // Render product performance chart
-function renderProductChart(labels, data) {
+function renderProductChart(labels, data, currencyCode) {
     const ctx = document.getElementById('productPerformanceChart').getContext('2d');
 
     // Clear old chart if exists
@@ -281,14 +283,21 @@ function displayRecommendations(recommendations) {
     }
 }
 
-// Format currency values
-function formatCurrency(value) {
-    if (!value) return '$0.00';
-    const num = parseFloat(value);
-    return '$' + num.toLocaleString('en-US', { 
-        minimumFractionDigits: 2, 
-        maximumFractionDigits: 2 
-    });
+function formatCurrency(value, currencyCode = 'USD') {
+    if (!value) value = 0;
+    try {
+        return new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: currencyCode.toUpperCase().trim(),
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+        }).format(parseFloat(value));
+    } catch (e) {
+        return currencyCode + ' ' + parseFloat(value).toLocaleString('en-US', { 
+            minimumFractionDigits: 0, 
+            maximumFractionDigits: 0 
+        });
+    }
 }
 
 // Show error message

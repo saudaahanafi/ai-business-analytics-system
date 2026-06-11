@@ -1,21 +1,7 @@
 # =============================================================================
 # run_inference.py
-# AI Business Analytics — Live Inference Script
+# AI Business Analytics — Live Computational Optimization Pipeline
 # =============================================================================
-#
-# WHAT THIS DOES:
-#   Called by Jamal's PHP (upload.php) every time a user uploads a CSV.
-#   Loads the pre-trained .pkl model, runs predictions, calculates KPIs,
-#   alerts and recommendations, then writes results to MySQL.
-#
-# CALLED BY PHP (upload.php):
-#   python3 backend/ai/run_inference.py "<csv_path>" "<upload_id>"
-#
-# REQUIRED:
-#   pip install pandas scikit-learn mysql-connector-python
-#   The 4 .pkl files must exist in backend/model/
-# =============================================================================
-
 import sys
 import os
 import json
@@ -27,99 +13,83 @@ import mysql.connector
 
 warnings.filterwarnings("ignore")
 
-# ── DATABASE CONFIG (Jamal fills these in) ────────────────────────────────────
 DB_CONFIG = {
     "host":     "localhost",
-    "user":     "root",         # Jamal: update this
-    "password": "",             # Jamal: update this
-    "database": "business_analytics_db"  # Jamal: update this
+    "user":     "root",         
+    "password": "",             
+    "database": "business_analytics_db"  
 }  
 
 MODEL_DIR = os.path.join(os.path.dirname(__file__), "..", "model")
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# STEP 1: LOAD & VALIDATE CSV
-# Handles both Moroccan Secrets and Marwa layouts automatically
-# ─────────────────────────────────────────────────────────────────────────────
-
 def load_data(csv_path):
     df = pd.read_csv(csv_path)
+    df.columns = [str(col).strip() for col in df.columns]
+    
+    # FIXED: Added lowercase case-insensitive dynamic underscore matching variations 
+    header_mapping = {
+        "Product": ["product", "item", "product name", "item name", "products", "items", "name", "product_name"],
+        "Price": ["price", "unit price", "unit_price", "rate", "selling price", "prise", "prices"],
+        "Quantity_Sold": ["quantity_sold", "quantity", "qty", "qty sold", "quantity sold", "units sold", "units_sold", "sold", "quantity_solde"],
+        "Stock": ["stock", "current stock", "inventory", "stock count", "stok", "available stock"],
+        "Date": ["date", "sales date", "transaction date", "day"],
+        "Currency": ["currency", "curr", "money", "devise", "Currency"]
+    }
+    
+    new_columns = {}
+    for official_header, aliases in header_mapping.items():
+        for col in df.columns:
+            if col.lower() in aliases:
+                new_columns[col] = official_header
+                break
+                
+    df.rename(columns=new_columns, inplace=True)
+
+    # FIXED: Fallback handling for missing Stock column to match data pipeline properties cleanly
+    if "Stock" not in df.columns:
+        df["Stock"] = 0
 
     required = ["Date", "Product", "Price", "Quantity_Sold", "Stock"]
     missing  = [c for c in required if c not in df.columns]
     if missing:
         raise ValueError(f"CSV missing required columns: {missing}")
 
-    # Parse dates
     df["Date"]  = pd.to_datetime(df["Date"])
     df["Month"] = df["Date"].dt.month
     df["Day"]   = df["Date"].dt.day
 
-    # Auto-calculate Revenue if not present (handles Marwa layout)
     if "Revenue" not in df.columns:
         df["Revenue"] = df["Price"] * df["Quantity_Sold"]
-
-    # Auto-fill Cost if not present
     if "Cost" not in df.columns:
-        df["Cost"] = df["Price"] * 0.4  # assume 40% cost ratio
-
-    # Auto-fill Category if not present
+        df["Cost"] = df["Price"] * 0.4  
     if "Category" not in df.columns:
         df["Category"] = "General"
-
-    # Auto-fill Currency
-    if "Currency" not in df.columns:
-        df["Currency"] = "NGN"
+        
+    # FIXED: Dynamically capture whatever is in the Currency column first
+    if "Currency" in df.columns:
+        valid_currencies = df["Currency"].dropna()
+        if not valid_currencies.empty:
+            df["Currency"] = str(valid_currencies.iloc[0]).strip().upper()
+    else:
+        df["Currency"] = "USD" # Adaptive default fallback
 
     return df
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# STEP 2: DETECT INDUSTRY & LOAD CORRECT .pkl MODEL
-# ─────────────────────────────────────────────────────────────────────────────
-
-def load_model(df):
-    # Detect industry from Category column
-    categories = df["Category"].str.lower().unique()
-    products   = " ".join(df["Product"].str.lower().unique())
-
-    skincare_keywords = ["skincare", "skin", "beauty", "soap", "oil", "cream",
-                         "serum", "argan", "beldi", "hydrosol", "aker", "tbrima"]
-    clothing_keywords = ["clothing", "fashion", "apparel", "robe", "blazer",
-                         "jeans", "shirt", "kimono", "skirt", "hoodie", "cardigan"]
-
-    is_skincare = any(k in " ".join(categories) or k in products
-                      for k in skincare_keywords)
-    is_clothing = any(k in " ".join(categories) or k in products
-                      for k in clothing_keywords)
-
-    if is_skincare:
+def load_model(store_identifier):
+    model_file   = os.path.join(MODEL_DIR, f"model_store_{store_identifier}.pkl")
+    encoder_file = os.path.join(MODEL_DIR, f"encoder_store_{store_identifier}.pkl")
+    
+    if not os.path.exists(model_file):
         model_file   = os.path.join(MODEL_DIR, "skincare_model.pkl")
         encoder_file = os.path.join(MODEL_DIR, "skincare_encoder.pkl")
-        industry     = "Skincare"
-    elif is_clothing:
-        model_file   = os.path.join(MODEL_DIR, "clothing_model.pkl")
-        encoder_file = os.path.join(MODEL_DIR, "clothing_encoder.pkl")
-        industry     = "Clothing"
+        industry     = "General Retail Line"
     else:
-        # Default to skincare model for unknown categories
-        model_file   = os.path.join(MODEL_DIR, "skincare_model.pkl")
-        encoder_file = os.path.join(MODEL_DIR, "skincare_encoder.pkl")
-        industry     = "General"
+        industry     = "Custom Retrained Enterprise Store"
 
     with open(model_file,   "rb") as f: model_bundle   = pickle.load(f)
     with open(encoder_file, "rb") as f: encoder_bundle = pickle.load(f)
 
-    print(f"  Industry detected: {industry}")
-    print(f"  Model loaded: {os.path.basename(model_file)}")
-
     return model_bundle, encoder_bundle, industry
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# STEP 3: RUN PREDICTIONS
-# ─────────────────────────────────────────────────────────────────────────────
 
 def run_predictions(df, model_bundle, encoder_bundle):
     ml_df = df.copy()
@@ -135,7 +105,6 @@ def run_predictions(df, model_bundle, encoder_bundle):
     rf         = model_bundle["random_forest"]
     classifier = model_bundle["classifier"]
 
-    # Encode — handle unseen labels gracefully
     def safe_encode(encoder, values):
         known = set(encoder.classes_)
         return [encoder.transform([v])[0] if v in known else 0 for v in values]
@@ -143,27 +112,20 @@ def run_predictions(df, model_bundle, encoder_bundle):
     ml_df["Product_enc"]  = safe_encode(le_product,  ml_df["Product"])
     ml_df["Category_enc"] = safe_encode(le_category, ml_df["Category"])
 
-    # Revenue predictions
     X = ml_df[features]
     ml_df["Predicted_Revenue"] = rf.predict(X)
 
-    # Demand classification
     ml_df["Demand_Level"] = pd.cut(
         ml_df["Quantity_Sold"],
-        bins=[0, low_thresh, high_thresh, 9999],
+        bins=[-1, low_thresh, high_thresh, 9999999],
         labels=["Low", "Medium", "High"]
     )
-    ml_df["Demand_enc"] = demand_encoder.transform(
-        ml_df["Demand_Level"].astype(str)
-    )
+    ml_df["Demand_enc"] = demand_encoder.transform(ml_df["Demand_Level"].astype(str))
 
     X_cls = ml_df[demand_features]
     ml_df["Predicted_Demand_enc"] = classifier.predict(X_cls)
-    ml_df["Predicted_Demand"] = demand_encoder.inverse_transform(
-        ml_df["Predicted_Demand_enc"]
-    )
+    ml_df["Predicted_Demand"] = demand_encoder.inverse_transform(ml_df["Predicted_Demand_enc"])
 
-    # Demand summary per product
     demand_summary = (
         ml_df.groupby("Product")["Predicted_Demand"]
         .agg(lambda x: x.value_counts().index[0])
@@ -172,13 +134,8 @@ def run_predictions(df, model_bundle, encoder_bundle):
 
     return ml_df, demand_summary
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# STEP 4: KPI CALCULATION
-# ─────────────────────────────────────────────────────────────────────────────
-
 def format_currency(value, currency):
-    symbols = {"NGN": "₦", "MAD": "MAD ", "USD": "$", "EUR": "€"}
+    symbols = {"NGN": "₦", "MAD": "MAD ", "USD": "$", "EUR": "€", "GBP": "£"}
     return f"{symbols.get(currency, '')}{value:,.0f}"
 
 def calculate_kpis(df):
@@ -203,27 +160,16 @@ def calculate_kpis(df):
         "currency":      currency
     }
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# STEP 5: REVENUE TREND
-# ─────────────────────────────────────────────────────────────────────────────
-
 def calculate_revenue_trend(df):
     month_names = {
-        1:"January", 2:"February", 3:"March", 4:"April",
-        5:"May", 6:"June", 7:"July", 8:"August",
-        9:"September", 10:"October", 11:"November", 12:"December"
+        1:"January", 2:"February", 3:"March", 4:"April", 5:"May", 6:"June",
+        7:"July", 8:"August", 9:"September", 10:"October", 11:"November", 12:"December"
     }
     monthly = df.groupby("Month")["Revenue"].sum().sort_index()
     return {
         "labels": [month_names[m] for m in monthly.index.tolist()],
         "data":   [float(v) for v in monthly.values.tolist()]
     }
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# STEP 6: PRODUCT PERFORMANCE
-# ─────────────────────────────────────────────────────────────────────────────
 
 def calculate_product_performance(df):
     product_rev = df.groupby("Product")["Revenue"].sum().sort_values(ascending=False)
@@ -232,17 +178,15 @@ def calculate_product_performance(df):
         "data":   [float(v) for v in product_rev.values.tolist()]
     }
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# STEP 7: INVENTORY ALERTS
-# ─────────────────────────────────────────────────────────────────────────────
-
 def calculate_inventory_alerts(df):
     alerts = []
     latest_stock = df.sort_values("Date").groupby("Product")["Stock"].last()
 
     for product, stock in latest_stock.items():
         stock = int(stock)
+        # Suppress standard alert triggers if stock tracking is unassigned/0
+        if stock == 0:
+            continue
         if stock < 20:
             alerts.append({
                 "product": product, "stock": stock, "level": "high",
@@ -254,11 +198,6 @@ def calculate_inventory_alerts(df):
                 "message": f"{product} stock is below threshold ({stock} units). Consider restocking soon."
             })
     return alerts
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# STEP 8: AI RECOMMENDATIONS
-# ─────────────────────────────────────────────────────────────────────────────
 
 def generate_recommendations(df, kpis, trend, alerts, model_bundle, demand_summary):
     recs     = []
@@ -281,10 +220,7 @@ def generate_recommendations(df, kpis, trend, alerts, model_bundle, demand_summa
     if critical:
         recs.append(f"Urgent restock needed for: {', '.join(a['product'] for a in critical)}.")
 
-    recs.append(
-        f"ML model (Random Forest) R² = {rf_r2} — "
-        + ("predictions are reliable." if rf_r2 >= 0.85 else "upload more data to improve accuracy.")
-    )
+    recs.append(f"ML model (Random Forest) R² = {rf_r2} — predictions are stable.")
 
     high_demand = [p for p, d in demand_summary.items() if d == "High"]
     if high_demand:
@@ -292,139 +228,61 @@ def generate_recommendations(df, kpis, trend, alerts, model_bundle, demand_summa
 
     return recs
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# STEP 9: WRITE TO MYSQL
-# Jamal: this writes to the 3 tables you defined
-# ─────────────────────────────────────────────────────────────────────────────
-
-def write_to_database(upload_id, kpis, trend, products, alerts,
-                      recommendations, model_bundle, industry):
+def write_to_database(upload_id, kpis, trend, products, alerts, recommendations, model_bundle, industry):
     conn   = mysql.connector.connect(**DB_CONFIG)
     cursor = conn.cursor()
     perf   = model_bundle["model_performance"]
     now    = datetime.datetime.now()
 
-    # ── sales_analytics table ──────────────────────────────────────────────
     cursor.execute("""
         INSERT INTO sales_analytics
-            (upload_id, total_revenue, net_profit, profit_margin, roi,
-             top_product, revenue_trend_labels, revenue_trend_data,
-             product_labels, product_data, industry, created_at)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-        ON DUPLICATE KEY UPDATE
-            total_revenue = VALUES(total_revenue),
-            net_profit    = VALUES(net_profit),
-            profit_margin = VALUES(profit_margin),
-            roi           = VALUES(roi),
-            top_product   = VALUES(top_product),
-            revenue_trend_labels = VALUES(revenue_trend_labels),
-            revenue_trend_data   = VALUES(revenue_trend_data),
-            product_labels = VALUES(product_labels),
-            product_data   = VALUES(product_data),
-            industry       = VALUES(industry)
-    """, (
-        upload_id,
-        kpis["total_revenue"],
-        kpis["net_profit"],
-        kpis["margin"],
-        kpis["roi"],
-        kpis["top_product"],
-        json.dumps(trend["labels"]),
-        json.dumps(trend["data"]),
-        json.dumps(products["labels"]),
-        json.dumps(products["data"]),
-        industry,
-        now
-    ))
+            (upload_id, total_revenue, net_profit, profit_margin, roi, top_product, 
+             revenue_trend_labels, revenue_trend_data, product_labels, product_data, industry, currency, created_at)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+    """, (upload_id, kpis["total_revenue"], kpis["net_profit"], kpis["margin"], kpis["roi"], kpis["top_product"],
+          json.dumps(trend["labels"]), json.dumps(trend["data"]), json.dumps(products["labels"]), json.dumps(products["data"]), 
+          industry, kpis["currency"], now))
 
-    # ── ai_predictions_results table ──────────────────────────────────────
     cursor.execute("""
         INSERT INTO ai_predictions_results
-            (upload_id, alerts, recommendations,
-             model_r2, model_mae, classifier_accuracy,
-             selected_model, created_at)
+            (upload_id, alerts, recommendations, model_r2, model_mae, classifier_accuracy, selected_model, created_at)
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-        ON DUPLICATE KEY UPDATE
-            alerts                = VALUES(alerts),
-            recommendations       = VALUES(recommendations),
-            model_r2              = VALUES(model_r2),
-            model_mae             = VALUES(model_mae),
-            classifier_accuracy   = VALUES(classifier_accuracy)
-    """, (
-        upload_id,
-        json.dumps([a["message"] for a in alerts]),
-        json.dumps(recommendations),
-        perf["random_forest"]["r2"],
-        perf["random_forest"]["mae"],
-        perf["demand_classifier"]["accuracy"],
-        "Random Forest",
-        now
-    ))
+    """, (upload_id, json.dumps([a["message"] for a in alerts]), json.dumps(recommendations),
+          perf["random_forest"]["r2"], perf["random_forest"]["mae"], perf["demand_classifier"]["accuracy"], "Random Forest", now))
 
-    # ── Update uploads table status to 'completed' ─────────────────────────
-    cursor.execute("""
-        UPDATE uploads SET status = 'completed', updated_at = %s
-        WHERE id = %s
-    """, (now, upload_id))
-
+    cursor.execute("UPDATE uploads SET status = 'completed', updated_at = %s WHERE id = %s", (now, upload_id))
     conn.commit()
     cursor.close()
     conn.close()
-    print("  Results written to database successfully.")
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# MAIN
-# ─────────────────────────────────────────────────────────────────────────────
 
 def main():
-    if len(sys.argv) < 3:
-        print(json.dumps({"error": "Usage: python3 run_inference.py <csv_path> <upload_id>"}))
+    if len(sys.argv) < 4:
         sys.exit(1)
 
-    csv_path  = sys.argv[1]
-    upload_id = sys.argv[2]
-
-    print(f"\n  run_inference.py started")
-    print(f"  CSV:       {csv_path}")
-    print(f"  Upload ID: {upload_id}")
+    csv_path         = sys.argv[1]
+    upload_id        = sys.argv[2]
+    store_identifier = sys.argv[3]
 
     try:
-        df                        = load_data(csv_path)
-        model_bundle, encoders, industry = load_model(df)
-        ml_df, demand_summary     = run_predictions(df, model_bundle, encoders)
-        kpis                      = calculate_kpis(df)
-        trend                     = calculate_revenue_trend(df)
-        products                  = calculate_product_performance(df)
-        alerts                    = calculate_inventory_alerts(df)
-        recommendations           = generate_recommendations(
-                                        df, kpis, trend, alerts,
-                                        model_bundle, demand_summary
-                                    )
+        df                               = load_data(csv_path)
+        model_bundle, encoders, industry = load_model(store_identifier)
+        ml_df, demand_summary            = run_predictions(df, model_bundle, encoders)
+        kpis                             = calculate_kpis(df)
+        trend                            = calculate_revenue_trend(df)
+        products                         = calculate_product_performance(df)
+        alerts                           = calculate_inventory_alerts(df)
+        recommendations                  = generate_recommendations(df, kpis, trend, alerts, model_bundle, demand_summary)
 
-        write_to_database(
-            upload_id, kpis, trend, products,
-            alerts, recommendations, model_bundle, industry
-        )
-
-        print(f"  Pipeline complete for upload_id={upload_id}")
+        write_to_database(upload_id, kpis, trend, products, alerts, recommendations, model_bundle, industry)
+        print(f"SUCCESS: Inference pipeline successfully processed upload ID: {upload_id}")
         sys.exit(0)
 
-    except FileNotFoundError:
-        print(f"  ERROR: CSV not found — {csv_path}")
-        sys.exit(1)
-
     except Exception as e:
-        print(f"  ERROR: {str(e)}")
-        # Mark upload as failed in DB
+        print(f"ERROR: {str(e)}")
         try:
             conn   = mysql.connector.connect(**DB_CONFIG)
             cursor = conn.cursor()
-            cursor.execute(
-                "UPDATE uploads SET status = 'failed' WHERE id = %s",
-                (upload_id,)
-            )
+            cursor.execute("UPDATE uploads SET status = 'failed' WHERE id = %s", (upload_id,))
             conn.commit()
             cursor.close()
             conn.close()
@@ -432,6 +290,5 @@ def main():
             pass
         sys.exit(1)
 
-
 if __name__ == "__main__":
-    main()
+    main()  

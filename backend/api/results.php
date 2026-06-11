@@ -8,11 +8,11 @@ include dirname(__DIR__) . '/config/database.php';
 if (isset($_GET['upload_id'])) {
     $upload_id = intval($_GET['upload_id']);
     
-    // SQL query using the clean PDO named placeholder (:upload_id)
+    // FIXED: Added sa.currency identifier field mapping to match results.js logic pipeline
     $query = "
         SELECT 
             u.id, u.user_id, u.company_name, u.uploaded_at, u.saved_file_path,
-            sa.total_revenue, sa.net_profit, sa.profit_margin, sa.roi, 
+            sa.total_revenue, sa.net_profit, sa.profit_margin, sa.roi, sa.currency,
             sa.top_product, sa.revenue_trend_labels, sa.revenue_trend_data,
             sa.product_labels, sa.product_data, sa.industry,
             ar.alerts, ar.recommendations, ar.model_r2, ar.classifier_accuracy, ar.selected_model
@@ -23,7 +23,6 @@ if (isset($_GET['upload_id'])) {
     ";
     
     try {
-        // Swapped out $conn->prepare() for your PDO instance $pdo->prepare()
         $stmt = $pdo->prepare($query);
         
         // Execute with the bound named parameter array
@@ -47,7 +46,4 @@ if (isset($_GET['upload_id'])) {
     http_response_code(400);
     echo json_encode(['error' => 'Missing required parameter: upload_id']);
 }
-
-// Note: You do not need explicit connection close statements (like $conn->close()) with PDO. 
-// PHP automatically destroys the connection object cleanly when the script finishes executing!
 ?>
