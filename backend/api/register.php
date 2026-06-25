@@ -68,11 +68,15 @@ if (empty($company_name)) {
     exit;
 }
 
-if (empty($business_sector) || !in_array($business_sector, ['Clothing/Retail', 'Skincare/Cosmetics'])) {
+// Old validation (REMOVE THIS):
+// if (empty($business_sector) || !in_array($business_sector, ['Clothing/Retail', 'Skincare/Cosmetics'])) { ... }
+
+// New validation (USE THIS):
+if (empty($business_sector)) {
     http_response_code(400);
     echo json_encode([
         'success' => false,
-        'message' => 'Valid business sector selection is required'
+        'message' => 'Business sector is required'
     ]);
     exit;
 }

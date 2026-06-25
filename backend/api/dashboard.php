@@ -1,9 +1,19 @@
 <?php
+session_start(); // Start the session
+
+// Block access if the user is not logged in
+if (!isset($_SESSION['user_id'])) {
+    http_response_code(401); // Unauthorized
+    echo json_encode(['error' => 'You must be logged in to perform this action.']);
+    exit;
+}
+
 if (ob_get_length()) ob_clean();
 header('Content-Type: application/json');
 
-// Step out of api/ to find backend/config/database.php
 include dirname(__DIR__) . '/config/database.php';
+
+// Now your logic continues...         
 
 // Action A: Fetch completed samples for dropdown
 if (isset($_GET['fetch_samples']) && $_GET['fetch_samples'] === 'true') {
@@ -75,7 +85,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['csv_file'])) {
     }
     
     // Testing Identity (Swap with session data later)
-    $user_id = 1; 
+    // Use the logged-in user's ID from the session
+$user_id = $_SESSION['user_id'];    
     $status = 'pending';
     $uploaded_at = date('Y-m-d H:i:s');
     

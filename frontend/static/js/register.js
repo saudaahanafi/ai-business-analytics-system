@@ -32,7 +32,8 @@ document.addEventListener('DOMContentLoaded', function() {
     registerCompany.addEventListener('input', debounce(() => validateCompany(), 300));
     registerCompany.addEventListener('blur', validateCompany);
 
-    registerSector.addEventListener('change', validateSector);
+    registerSector.addEventListener('input', debounce(() => validateSector(), 300));
+registerSector.addEventListener('blur', validateSector);
 
     function initializeFieldAnimations() {
         const fields = registerForm.querySelectorAll('.form-input');
@@ -153,24 +154,29 @@ document.addEventListener('DOMContentLoaded', function() {
         errorElement.textContent = '';
         return true;
     }
+  function validateSector() {
+    const sector = registerSector.value.trim();
+    const errorElement = document.getElementById('registerSectorError');
 
-    function validateSector() {
-        const sector = registerSector.value;
-        const errorElement = document.getElementById('registerSectorError');
-
-        if (!sector) {
-            registerSector.classList.add('input-error');
-            registerSector.classList.remove('input-valid');
-            errorElement.textContent = 'Please select a business sector';
-            return false;
-        }
-
-        registerSector.classList.add('input-valid');
-        registerSector.classList.remove('input-error');
+    if (sector === '') {
+        registerSector.classList.remove('input-valid', 'input-error');
         errorElement.textContent = '';
         return true;
     }
 
+    if (sector.length < 3) {
+        registerSector.classList.add('input-error');
+        registerSector.classList.remove('input-valid');
+        errorElement.textContent = 'Please enter a valid business sector (at least 3 characters)';
+        return false;
+    }
+
+    registerSector.classList.add('input-valid');
+    registerSector.classList.remove('input-error');
+    errorElement.textContent = '';
+    return true;
+}
+    
     function evaluatePasswordStrength() {
         const password = registerPassword.value;
         let strength = 0;

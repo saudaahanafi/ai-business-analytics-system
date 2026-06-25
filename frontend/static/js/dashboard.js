@@ -104,12 +104,17 @@ function handleUpload() {
         method: 'POST',
         body: formData
     })
-    .then(response => {
-        if (!response.ok) {
-            return response.json().then(err => { throw new Error(err.error || 'Server error'); });
-        }
-        return response.json();
-    })
+    // Inside handleUpload function, update this part:
+.then(response => {
+    if (response.status === 401) {
+        window.location.href = 'login.html';
+        return;
+    }
+    if (!response.ok) {
+        return response.json().then(err => { throw new Error(err.error || 'Server error'); });
+    }
+    return response.json();
+})     
     .then(data => {
         if (data.success) {
             statusDiv.className = 'status-message success';
@@ -147,12 +152,18 @@ function setupSampleSelectorListener() {
         loadAnalyticsData(selectedId);
     });
 }
-
-// Load and display analytics data
+// Replace the old function with this updated version
 function loadAnalyticsData(uploadId) {
-    // FIXED PATH: Applied absolute project endpoint mapping path here
     fetch('/ai-business-analytics-system/backend/api/dashboard.php?upload_id=' + uploadId)
-        .then(response => response.json())
+        .then(response => {
+            if (response.status === 401) {
+                // Redirect user if not authenticated
+                window.location.href = 'login.html';
+                return;
+            }
+            if (!response.ok) throw new Error('Network error');
+            return response.json();
+        })
         .then(data => populateAnalytics(data))
         .catch(error => {
             console.error('Error loading analytics:', error);
@@ -160,6 +171,7 @@ function loadAnalyticsData(uploadId) {
             document.getElementById('uploadStatus').textContent = 'Error loading analytics data';
         });
 }
+
 
 // Populate analytics UI with data
 function populateAnalytics(data) {
