@@ -3,130 +3,500 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Business Analytics Dashboard</title>
+    <title>AI Business Analytics & Decision Support System</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <link rel="stylesheet" href="../static/css/dashboard.css">
+    <link rel="stylesheet" href="../static/css/dashboard.css">  
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
-<body>
-    <div class="container">
-        <!-- Header Section -->
-        <header class="header">
-            <h1>AI-Powered Business Analytics</h1>
-            <p>Upload your sales data and get instant AI-driven insights</p>
-        </header>        
+<body>         
 
-            <p class="upload-tip" style="margin-bottom: 15px; font-size: 14px; color: #555;">
-    For best results, make sure your data columns match our system format. 
-    <a href="template.csv" download="business_analytics_template.csv" style="color: #0066cc; font-weight: bold; text-decoration: underline;">
-        Download our standard CSV format template here
-    </a>
-</p>      
-
-        <main class="main-content">
-            <!-- Upload Section -->
-            <section class="upload-section">
-                <div class="upload-card">
-                    <h2>Upload Your Sales Data</h2>
-                    
-                    <!-- Drag and Drop Area -->
-                    <div class="drop-zone" id="dropZone">
-                        <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                            <polyline points="17 8 12 3 7 8"></polyline>
-                            <line x1="12" y1="3" x2="12" y2="15"></line>
-                        </svg>
-                        <p class="drop-text">Drag and drop your CSV file here or click to browse</p>
-                        <input type="file" id="fileInput" accept=".csv" class="file-input">
-                    </div>
-
-                    <!-- Business Name Input -->
-                    <div class="form-group">
-                        <label for="companyName">Business Name:</label>
-                        <input 
-                            type="text" 
-                            id="companyName" 
-                            placeholder="Enter your company name"
-                            class="input-field"
-                        >
-                    </div>
-
-                    <!-- Submit Button -->
-                    <button id="analyzeBtn" class="btn-primary">Analyse Data</button>
-                    <div id="uploadStatus" class="status-message"></div>
-                </div>
-            </section>
-
-            <!-- Sample Selection Section -->
-            <section class="samples-section">
-                <div class="samples-card">
-                    <h2>Explore Historical Demo Reports</h2>
-                    <select id="sampleSelector" class="select-input">
-                        <option value="">-- Select a business to view data --</option>
-                    </select>
-                </div>
-            </section>
-
-            <!-- Analytics Output Section (Hidden by Default) -->
-            <section id="analyticsSection" class="analytics-section hidden">
-                <!-- KPI Cards -->
-                <div class="kpi-grid">
-                    <div class="kpi-card">
-                        <h3>Total Revenue</h3>
-                        <p id="totalRevenue" class="kpi-value">--</p>
-                    </div>
-                    <div class="kpi-card">
-                        <h3>Net Profit</h3>
-                        <p id="netProfit" class="kpi-value">--</p>
-                    </div>
-                    <div class="kpi-card">
-                        <h3>Profit Margin</h3>
-                        <p id="profitMargin" class="kpi-value">--</p>
-                    </div>
-                    <div class="kpi-card">
-                        <h3>Top Product</h3>
-                        <p id="topProduct" class="kpi-value">--</p>
-                    </div>
-                </div>
-
-                <!-- Charts Section -->
-                <div class="charts-grid">
-                    <div class="chart-container">
-                        <h3>Revenue Trend</h3>
-                        <canvas id="revenueTrendChart"></canvas>
-                    </div>
-                    <div class="chart-container">
-                        <h3>Product Performance</h3>
-                        <canvas id="productPerformanceChart"></canvas>
-                    </div>
-                </div>
-
-                <!-- Insights Section -->
-                <div class="insights-grid">
-                    <div class="insight-card">
-                        <h3>Operational Risks</h3>
-                        <ul id="risksList" class="insights-list">
-                            <li>Loading...</li>
-                        </ul>
-                    </div>
-                    <div class="insight-card">
-                        <h3>AI Recommendations</h3>
-                        <ul id="recommendationsList" class="insights-list">
-                            <li>Loading...</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <!-- Model Diagnostics -->
-                <div class="diagnostics-footer">
-                    <p><strong>Model R² Score:</strong> <span id="modelR2">--</span></p>
-                    <p><strong>Classifier Accuracy:</strong> <span id="classifierAccuracy">--</span></p>
-                    <p><strong>Selected Model:</strong> <span id="selectedModel">--</span></p>
-                </div>
-            </section>
-        </main>
+<!-- ═══════════════════════════════════════════════
+     NAV BAR
+════════════════════════════════════════════════ -->
+<nav class="navbar">
+    <div class="nav-inner">
+        <div class="nav-brand">
+            <div class="nav-logo">
+                <svg viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="14" fill="#0ea5e9" opacity="0.15"/><path d="M8 22L13 14l4 5 3-7 4 8" stroke="#0ea5e9" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="24" cy="8" r="2.5" fill="#38bdf8"/></svg>
+            </div>
+            <span class="nav-title">AnalyticsGateway</span>  
+        </div>
+        <div class="nav-links">
+            <a href="#features">Features</a>
+            <a href="#how-it-works">How It Works</a>
+            <a href="#demos">Demos</a>
+            <a href="#upload" class="nav-cta">Upload Data</a>
+        </div>
     </div>
+</nav>
 
-    <script src="../static/js/dashboard.js"></script>
+<!-- ═══════════════════════════════════════════════
+     HERO SECTION
+════════════════════════════════════════════════ -->
+<section class="hero" id="home">
+    <div class="hero-bg-grid"></div>
+    <div class="hero-orb hero-orb-1"></div>
+    <div class="hero-orb hero-orb-2"></div>
+    <div class="hero-inner">
+        <div class="hero-eyebrow">
+            <span class="eyebrow-dot"></span>
+            AI-Powered · Real-Time · Intelligent
+        </div>
+        <h1 class="hero-title">
+            Transforming Business Data<br>
+            <span class="hero-title-accent">into Intelligent Decisions.</span>
+        </h1>
+        <p class="hero-subtitle">
+            Upload your sales data and receive AI-powered predictions, business insights,
+            and strategic recommendations in seconds.
+        </p>
+        <div class="hero-actions">
+            <a href="#upload" class="btn-hero-primary">
+                <svg viewBox="0 0 20 20" fill="currentColor" width="18"><path d="M10 2a1 1 0 011 1v8.586l2.293-2.293a1 1 0 011.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L9 11.586V3a1 1 0 011-1z"/><path d="M3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"/></svg>
+                Upload CSV Data
+            </a>
+            <a href="#demos" class="btn-hero-secondary">View Live Demos</a>
+        </div>
+        <div class="hero-stats">
+            <div class="hero-stat"><span class="hero-stat-num">98%</span><span class="hero-stat-label">Prediction Accuracy</span></div>
+            <div class="hero-stat-divider"></div>
+            <div class="hero-stat"><span class="hero-stat-num">1500+</span><span class="hero-stat-label">Transactions Analysed</span></div>
+            <div class="hero-stat-divider"></div>
+            <div class="hero-stat"><span class="hero-stat-num">2</span><span class="hero-stat-label">ML Models</span></div>
+            <div class="hero-stat-divider"></div>
+            <div class="hero-stat"><span class="hero-stat-num">100%</span><span class="hero-stat-label">Automated Reports</span></div>
+        </div>
+    </div>
+    <div class="hero-visual">
+        <div class="hero-card-float card-float-1">
+            <div class="float-card-label">Revenue Trend</div>
+            <div class="float-card-value">↑ 14.2%</div>
+        </div>
+        <div class="hero-card-float card-float-2">
+            <div class="float-card-label">Business Health</div>
+            <div class="float-card-value health-score">88 / 100</div>
+        </div>
+        <div class="hero-card-float card-float-3">
+            <div class="float-card-label">AI Status</div>
+            <div class="float-card-value ai-active"><span class="pulse-dot"></span> Active</div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     FEATURES SECTION
+════════════════════════════════════════════════ -->
+<section class="features" id="features">
+    <div class="section-inner">
+        <div class="section-header">
+            <div class="section-eyebrow">Platform Capabilities</div>
+            <h2 class="section-title">Why Choose Our Platform?</h2>
+            <p class="section-subtitle">Six intelligent modules working together to give your business a competitive edge.</p>
+        </div>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon-wrap" style="--icon-color: #0ea5e9;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                </div>
+                <h3>Revenue Forecasting</h3>
+                <p>Predict future revenue using trained Machine Learning regression models calibrated to your industry data.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon-wrap" style="--icon-color: #06b6d4;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+                </div>
+                <h3>Interactive Dashboards</h3>
+                <p>Professional visualisations with live KPI cards, revenue timelines, and product performance bar charts.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon-wrap" style="--icon-color: #3b82f6;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                </div>
+                <h3>Inventory Optimisation</h3>
+                <p>Detect low stock thresholds and prevent supply shortages before they impact your sales performance.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon-wrap" style="--icon-color: #8b5cf6;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+                </div>
+                <h3>AI Business Insights</h3>
+                <p>Automatically identify hidden sales trends, seasonal patterns, and market signals from raw CSV data.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon-wrap" style="--icon-color: #ef4444;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                </div>
+                <h3>Risk Detection</h3>
+                <p>Receive early operational warnings and risk alerts before problems escalate into costly business failures.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon-wrap" style="--icon-color: #10b981;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+                </div>
+                <h3>Decision Support</h3>
+                <p>Receive intelligent, context-aware recommendations for action, tailored to your specific business sector.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     HOW IT WORKS
+════════════════════════════════════════════════ -->
+<section class="how-it-works" id="how-it-works">
+    <div class="section-inner">
+        <div class="section-header">
+            <div class="section-eyebrow">Process</div>
+            <h2 class="section-title">How It Works</h2>
+            <p class="section-subtitle">From raw data to actionable intelligence in five automated steps.</p>
+        </div>
+        <div class="pipeline-steps">
+            <div class="pipeline-step">
+                <div class="step-number">01</div>
+                <div class="step-content">
+                    <div class="step-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    </div>
+                    <h3>Upload CSV</h3>
+                    <p>Drag and drop your sales CSV file. Our system accepts any standard export from your POS or ERP system.</p>
+                </div>
+            </div>
+            <div class="pipeline-arrow">→</div>
+            <div class="pipeline-step">
+                <div class="step-number">02</div>
+                <div class="step-content">
+                    <div class="step-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
+                    </div>
+                    <h3>AI Cleans & Validates</h3>
+                    <p>The pipeline automatically detects column headers, handles missing values, and validates data integrity.</p>
+                </div>
+            </div>
+            <div class="pipeline-arrow">→</div>
+            <div class="pipeline-step">
+                <div class="step-number">03</div>
+                <div class="step-content">
+                    <div class="step-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+                    </div>
+                    <h3>ML Analyses Sales</h3>
+                    <p>Two trained models — a regression forecaster and a classification engine — process your data simultaneously.</p>
+                </div>
+            </div>
+            <div class="pipeline-arrow">→</div>
+            <div class="pipeline-step">
+                <div class="step-number">04</div>
+                <div class="step-content">
+                    <div class="step-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+                    </div>
+                    <h3>KPIs & Charts Generated</h3>
+                    <p>Revenue totals, profit margins, trend lines, and product performance charts are built and rendered instantly.</p>
+                </div>
+            </div>
+            <div class="pipeline-arrow">→</div>
+            <div class="pipeline-step">
+                <div class="step-number">05</div>
+                <div class="step-content">
+                    <div class="step-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                    </div>
+                    <h3>Recommendations Produced</h3>
+                    <p>An AI executive summary with strategic recommendations is delivered, ready to share with stakeholders.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     PLATFORM STATISTICS
+════════════════════════════════════════════════ -->
+<section class="stats-band">
+    <div class="stats-band-inner">
+        <div class="stat-item">
+            <div class="stat-num" data-target="98">0</div>
+            <div class="stat-suffix">%</div>
+            <div class="stat-label">Prediction Accuracy</div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+            <div class="stat-num" data-target="1500">0</div>
+            <div class="stat-suffix">+</div>
+            <div class="stat-label">Transactions Analysed</div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+            <div class="stat-num" data-target="2">0</div>
+            <div class="stat-suffix"></div>
+            <div class="stat-label">ML Models Deployed</div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+            <div class="stat-num" data-target="100">0</div>
+            <div class="stat-suffix">%</div>
+            <div class="stat-label">Automated Reporting</div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     DEMO BUSINESSES
+════════════════════════════════════════════════ -->
+<section class="demos" id="demos">
+    <div class="section-inner">
+        <div class="section-header">
+            <div class="section-eyebrow">Live Demo Reports</div>
+            <h2 class="section-title">Explore Demo Businesses</h2>
+            <p class="section-subtitle">See the platform in action with real AI-analysed business data.</p>
+        </div>
+        <div class="demo-cards" id="demoCards">
+            <!-- Dynamically populated from dashboard.php -->     
+            <div class="demo-card-skeleton"></div>
+            <div class="demo-card-skeleton"></div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     UPLOAD SECTION
+════════════════════════════════════════════════ -->
+<section class="upload-section-wrap" id="upload">
+    <div class="section-inner">
+        <div class="section-header">
+            <div class="section-eyebrow">Get Started</div>
+            <h2 class="section-title">Upload Your Business Data</h2>
+            <p class="section-subtitle">
+                For best results, ensure your CSV matches our format.
+                <a href="template.csv" download="business_analytics_template.csv" class="template-link">Download template →</a>
+            </p>
+        </div>
+        <div class="upload-card-modern">
+            <div class="drop-zone" id="dropZone">
+                <div class="drop-zone-inner">
+                    <div class="drop-icon-wrap">
+                        <svg viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="22" fill="#e0f2fe"/><path d="M24 14v14M18 20l6-6 6 6" stroke="#0ea5e9" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 34h20" stroke="#0ea5e9" stroke-width="2.5" stroke-linecap="round"/></svg>
+                    </div>
+                    <p class="drop-title">Drag & Drop your CSV file here</p>
+                    <p class="drop-sub">or click to browse from your computer</p>
+                    <div class="drop-file-name" id="dropFileName"></div>
+                </div>
+                <input type="file" id="fileInput" accept=".csv" class="file-input">
+            </div>
+            <div class="upload-form-row">
+                <div class="upload-input-group">
+                    <label for="companyName">Business Name</label>
+                    <input type="text" id="companyName" placeholder="e.g. Moroccan Secrets" class="upload-input">
+                </div>
+                <button id="analyzeBtn" class="btn-analyze">
+                    <svg viewBox="0 0 20 20" fill="currentColor" width="18"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                    Analyse Data
+                </button>
+            </div>
+            <div id="uploadStatus" class="upload-status"></div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     AI PROCESSING ANIMATION
+════════════════════════════════════════════════ -->
+<div class="pipeline-overlay" id="pipelineOverlay">
+    <div class="pipeline-modal">
+        <div class="pipeline-header">
+            <div class="pipeline-spinner"></div>
+            <h3>Running AI Pipeline…</h3>
+        </div>
+        <ul class="pipeline-steps-list" id="pipelineSteps">
+            <li class="step-item pending" data-step="1">Reading CSV file</li>
+            <li class="step-item pending" data-step="2">Cleaning & validating data</li>
+            <li class="step-item pending" data-step="3">Detecting business type</li>
+            <li class="step-item pending" data-step="4">Feature engineering</li>
+            <li class="step-item pending" data-step="5">Revenue prediction</li>
+            <li class="step-item pending" data-step="6">Demand classification</li>
+            <li class="step-item pending" data-step="7">Generating KPIs & charts</li>
+            <li class="step-item pending" data-step="8">Producing AI recommendations</li>
+            <li class="step-item pending" data-step="9">Dashboard complete</li>
+        </ul>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     ANALYTICS DASHBOARD
+════════════════════════════════════════════════ -->
+<section id="analyticsSection" class="analytics-section hidden">
+    <div class="section-inner">
+
+        <div class="analytics-header-bar">
+            <div class="analytics-header-left">
+                <h2 class="analytics-title" id="analyticsCompanyName">Business Report</h2>
+                <span class="analytics-badge">AI Generated</span>
+            </div>
+            <div class="analytics-header-right">
+                <span class="analytics-date" id="analyticsDate"></span>
+            </div>
+        </div>
+
+        <!-- KPI Cards -->
+        <div class="kpi-grid">
+            <div class="kpi-card kpi-revenue">
+                <div class="kpi-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+                </div>
+                <div class="kpi-body">
+                    <div class="kpi-label">Total Revenue</div>
+                    <div class="kpi-value" id="totalRevenue">--</div>
+                </div>
+            </div>
+            <div class="kpi-card kpi-profit">
+                <div class="kpi-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+                </div>
+                <div class="kpi-body">
+                    <div class="kpi-label">Net Profit</div>
+                    <div class="kpi-value" id="netProfit">--</div>
+                </div>
+            </div>
+            <div class="kpi-card kpi-margin">
+                <div class="kpi-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M8 12h8M12 8v8"/></svg>
+                </div>
+                <div class="kpi-body">
+                    <div class="kpi-label">Profit Margin</div>
+                    <div class="kpi-value" id="profitMargin">--</div>
+                </div>
+            </div>
+            <div class="kpi-card kpi-product">
+                <div class="kpi-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+                </div>
+                <div class="kpi-body">
+                    <div class="kpi-label">Top Product</div>
+                    <div class="kpi-value kpi-value-sm" id="topProduct">--</div>
+                </div>
+            </div>
+            <div class="kpi-card kpi-health">
+                <div class="kpi-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                </div>
+                <div class="kpi-body">
+                    <div class="kpi-label">Business Health</div>
+                    <div class="kpi-value" id="businessHealth">--</div>
+                </div>
+            </div>
+            <div class="kpi-card kpi-accuracy">
+                <div class="kpi-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                </div>
+                <div class="kpi-body">
+                    <div class="kpi-label">Model Accuracy</div>
+                    <div class="kpi-value" id="modelAccuracyKpi">--</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="charts-row">
+            <div class="chart-card">
+                <div class="chart-card-header">
+                    <h3>Revenue Trend</h3>
+                    <span class="chart-badge">Timeline</span>
+                </div>
+                <canvas id="revenueTrendChart"></canvas>
+            </div>
+            <div class="chart-card">
+                <div class="chart-card-header">
+                    <h3>Product Performance</h3>
+                    <span class="chart-badge">By Revenue</span>
+                </div>
+                <canvas id="productPerformanceChart"></canvas>
+            </div>
+        </div>
+
+        <!-- AI Executive Summary -->
+        <div class="executive-summary">
+            <div class="exec-summary-header">
+                <div class="exec-summary-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                </div>
+                <div>
+                    <h3>AI Executive Summary</h3>
+                    <p>Generated by the Decision Support Engine</p>
+                </div>
+                <div class="exec-health-badge">
+                    Business Health: <strong id="execHealthScore">--</strong>
+                </div>
+            </div>
+            <div class="exec-summary-body" id="execSummaryBody">
+                <p class="exec-loading">Generating executive summary…</p>
+            </div>
+        </div>
+
+        <!-- Insights Row -->
+        <div class="insights-row">
+            <div class="insight-card risks-card">
+                <div class="insight-card-header">
+                    <div class="insight-icon risk-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    </div>
+                    <h3>Operational Risks</h3>
+                </div>
+                <ul id="risksList" class="insight-list"></ul>
+            </div>
+            <div class="insight-card recs-card">
+                <div class="insight-card-header">
+                    <div class="insight-icon rec-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    </div>
+                    <h3>AI Recommendations</h3>
+                </div>
+                <ul id="recommendationsList" class="insight-list"></ul>
+            </div>
+        </div>
+
+        <!-- Model Diagnostics -->
+        <div class="diagnostics-bar">
+            <div class="diag-label">Model Diagnostics</div>
+            <div class="diag-items">
+                <div class="diag-item">
+                    <span class="diag-key">R² Score</span>
+                    <span class="diag-val" id="modelR2">--</span>
+                </div>
+                <div class="diag-sep"></div>
+                <div class="diag-item">
+                    <span class="diag-key">Classifier Accuracy</span>
+                    <span class="diag-val" id="classifierAccuracy">--</span>
+                </div>
+                <div class="diag-sep"></div>
+                <div class="diag-item">
+                    <span class="diag-key">Selected Model</span>
+                    <span class="diag-val" id="selectedModel">--</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     FOOTER
+════════════════════════════════════════════════ -->
+<footer class="footer">
+    <div class="footer-inner">
+        <div class="footer-brand">
+            <div class="nav-logo">
+                <svg viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="14" fill="#0ea5e9" opacity="0.2"/><path d="M8 22L13 14l4 5 3-7 4 8" stroke="#38bdf8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="24" cy="8" r="2.5" fill="#38bdf8"/></svg>
+            </div>
+            <div>
+                <div class="footer-title">AI Business Analytics</div>
+                <div class="footer-tagline">Where Machine Learning Meets Business Intelligence</div>
+            </div>
+        </div>
+        <div class="footer-copy">© 2026 AI Business Analytics & Decision Support System</div>
+    </div>
+</footer>
+
+<script src="../static/js/dashboard.js"></script>
 </body>
-</html>
-  
+</html>   
