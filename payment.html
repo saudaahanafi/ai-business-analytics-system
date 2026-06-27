@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Activate Subscription — AI Business Analytics</title>
+  <link rel="stylesheet" href="frontend/static/css/payment.css" />  
+</head>
+<body>
+     <!-- At the top of your payment page content -->
+<div id="subscriptionStatusMessage" style="padding: 15px; margin-bottom: 20px; border-radius: 8px; background-color: #fff3cd; border: 1px solid #ffc107; display: none;">
+    <!-- Message will be injected here by JavaScript -->
+</div>
+  <div id="toastContainer"></div>
+
+  <main class="page-wrapper">
+
+    <!-- ── Left panel: value proposition ── -->
+    <aside class="value-panel">
+      <div class="brand">
+        <span class="brand-icon">⬡</span>
+        <span class="brand-name">AnalyticsGateway</span>  
+      </div>
+
+      <h1 class="value-headline">
+        Unlock the full power of your data.
+      </h1>
+
+      <ul class="feature-list">
+        <li>
+          <span class="feature-icon">📊</span>
+          <div>
+            <strong>Live KPI Dashboard</strong>
+            <p>Revenue, profit margin, and ROI — refreshed on every upload.</p>
+          </div>
+        </li>
+        <li>
+          <span class="feature-icon">🤖</span>
+          <div>
+            <strong>AI Forecasting Engine</strong>
+            <p>Custom-trained models that adapt to your industry.</p>
+          </div>
+        </li>
+        <li>
+          <span class="feature-icon">💡</span>
+          <div>
+            <strong>Actionable Recommendations</strong>
+            <p>Alerts and strategy tips generated automatically.</p>
+          </div>
+        </li>
+        <li>
+          <span class="feature-icon">🔒</span>
+          <div>
+            <strong>Enterprise-Grade Security</strong>
+            <p>Session-based auth with server-side access control.</p>
+          </div>
+        </li>
+      </ul>
+    </aside>
+
+    <!-- ── Right panel: payment card ── -->
+    <section class="payment-panel">
+      <div class="payment-card">
+
+        <!-- Plan selection -->
+        <h2 class="card-title">Choose your plan</h2>
+
+        <div class="plan-toggle">
+
+          <label class="plan-option" id="labelMonthly">
+            <input type="radio" name="plan" value="monthly" id="planMonthly" />
+            <div class="plan-option-inner">
+              <div class="plan-option-header">
+                <span class="plan-option-name">Monthly</span>
+                <span class="plan-option-badge">Flexible</span>
+              </div>
+              <div class="plan-option-price">$10<span>/mo</span></div>
+              <p class="plan-option-note">Billed monthly. Cancel any time.</p>
+            </div>
+          </label>
+
+          <label class="plan-option" id="labelAnnual">
+            <input type="radio" name="plan" value="annual" id="planAnnual" checked />
+            <div class="plan-option-inner">
+              <div class="plan-option-header">
+                <span class="plan-option-name">Annual</span>
+                <span class="plan-option-badge save-badge">Save 17%</span>
+              </div>
+              <div class="plan-option-price">$99<span>/yr</span></div>
+              <p class="plan-option-note">Billed once a year. Best value.</p>
+            </div>
+          </label>
+
+        </div>
+
+        <hr class="divider" />
+
+        <!-- Card details form -->
+        <div class="form-group">
+          <label for="cardName">Cardholder Name</label>
+          <input
+            type="text"
+            id="cardName"
+            class="form-input"
+            placeholder="Jane Smith"
+            autocomplete="cc-name"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="cardNumber">Card Number</label>
+          <div class="input-icon-wrap">
+            <input
+              type="text"
+              id="cardNumber"
+              class="form-input"
+              placeholder="1234 5678 9012 3456"
+              maxlength="19"
+              autocomplete="cc-number"
+            />
+            <span class="card-icons">💳</span>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="cardExpiry">Expiry</label>
+            <input
+              type="text"
+              id="cardExpiry"
+              class="form-input"
+              placeholder="MM / YY"
+              maxlength="7"
+              autocomplete="cc-exp"
+            />
+          </div>
+          <div class="form-group">
+            <label for="cardCvc">CVC</label>
+            <input
+              type="text"
+              id="cardCvc"
+              class="form-input"
+              placeholder="•••"
+              maxlength="4"
+              autocomplete="cc-csc"
+            />
+          </div>
+        </div>
+
+        <button id="payBtn" class="pay-btn">
+          <span id="payBtnText">Pay $99 — Activate Now</span>
+          <span id="payBtnSpinner" class="spinner hidden"></span>
+        </button>
+
+        <p class="secure-note">
+          🔐 Payments are encrypted end-to-end. We never store card details.
+        </p>
+
+        <p class="login-link">
+          Already subscribed? <a href="login.html">Sign in</a>
+        </p>
+
+      </div>
+    </section>
+
+  </main>
+
+  <script src="frontend/static/js/payment.js"></script>  
+</body>
+</html>h

@@ -8,17 +8,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    // --- CHECK FOR REGISTRATION SUCCESS PASSING FROM URL ---
+    // --- CHECK FOR REGISTRATION SUCCESS ---
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('registered') === 'true') {
-        showToast('🎉 Account created successfully! Please sign in below.', 'success');
-        
-        // Clean up address bar query parameters smoothly
+        showStylishToast('🎉 Account created successfully! Please sign in below.', 'success');
         window.history.replaceState({}, document.title, window.location.pathname);
     }
-    // -------------------------------------------------------
 
-    // Modern floating field label animations matching register logic
+    // Modern floating field label animations
     initializeFieldAnimations();
 
     loginEmail.addEventListener('input', debounce(() => validateEmail(), 300));
@@ -32,15 +29,12 @@ document.addEventListener('DOMContentLoaded', function() {
     function initializeFieldAnimations() {
         const fields = loginForm.querySelectorAll('.form-input');
         fields.forEach(field => {
-            // Check initial values (on auto-fill check)
             if (field.value) {
                 field.parentElement.classList.add('field-focused');
             }
-
             field.addEventListener('focus', function() {
                 this.parentElement.classList.add('field-focused');
             });
-
             field.addEventListener('blur', function() {
                 if (!this.value) {
                     this.parentElement.classList.remove('field-focused');
@@ -82,6 +76,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // ── MAIN LOGIN SUBMIT ──────────────────────────────────────
     loginForm.addEventListener('submit', function(e) {
         e.preventDefault();
 
@@ -126,7 +121,7 @@ document.addEventListener('DOMContentLoaded', function() {
             password: password
         };
 
-        // Standard operational API payload fetch (Connected completely intact)
+        // ── API call ──────────────────────────────────────────
         fetch('/ai-business-analytics-system/backend/api/login.php', {
             method: 'POST',
             headers: {
@@ -137,54 +132,165 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                showToast('Login successful! Redirecting...', 'success');
+                const redirectUrl = data.redirect || '/ai-business-analytics-system/frontend/templates/dashboard.html';
+
+                let toastMessage = 'Login successful!';
+                let toastType = 'success';
+
+                if (redirectUrl.includes('payment.html')) {
+                    toastMessage = '⚠️ Your subscription is inactive or expired. Please renew to continue.';
+                    toastType = 'warning';
+                }
+
+                // ── Show the toast ──────────────────────────
+                showStylishToast(toastMessage, toastType);
+
+                // ── Redirect after 8 seconds ────────────────
                 setTimeout(() => {
-                    window.location.href = 'frontend/templates/dashboard.html';
-                }, 1500);
+                    window.location.href = redirectUrl;
+                }, 8000); // 8 seconds
+
             } else {
-                showToast(data.message || 'Login failed. Please try again.', 'error');
+                showStylishToast(data.message || 'Login failed. Please try again.', 'error');
                 loginSubmitBtn.disabled = false;
                 loginSubmitBtn.textContent = originalText;
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            showToast('An error occurred. Please try again.', 'error');
+            showStylishToast('An error occurred. Please try again.', 'error');
             loginSubmitBtn.disabled = false;
             loginSubmitBtn.textContent = originalText;
         });
     });
 
-    function showToast(message, type) {
-        const toastContainer = document.getElementById('toastContainer');
-        if (!toastContainer) return;
+    // ── STYLISH TOAST (matches your sky‑blue theme) ──────────
+    function showStylishToast(message, type) {
+        // Remove any existing toast
+        const existing = document.getElementById('stylishToast');
+        if (existing) existing.remove();
 
         const toast = document.createElement('div');
-        toast.className = `toast toast-${type}`;
+        toast.id = 'stylishToast';
 
-        const icon = document.createElement('div');
-        icon.className = 'toast-icon';
-        icon.textContent = type === 'success' ? '✓' : '✕';
+        // ── Base styling ──────────────────────────────────────
+        toast.style.position = 'fixed';
+        toast.style.top = '30px';
+        toast.style.left = '50%';
+        toast.style.transform = 'translateX(-50%)';
+        toast.style.zIndex = '999999';
+        toast.style.padding = '18px 28px';
+        toast.style.borderRadius = '16px';
+        toast.style.fontFamily = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
+        toast.style.fontSize = '17px';
+        toast.style.fontWeight = '500';
+        toast.style.boxShadow = '0 12px 40px rgba(0,0,0,0.15)';
+        toast.style.minWidth = '320px';
+        toast.style.maxWidth = '90%';
+        toast.style.textAlign = 'center';
+        toast.style.transition = 'all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55)';
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(-50%) translateY(-40px) scale(0.95)';
+        toast.style.display = 'flex';
+        toast.style.alignItems = 'center';
+        toast.style.justifyContent = 'space-between';
+        toast.style.gap = '15px';
+        toast.style.backdropFilter = 'blur(10px)';
+        toast.style.border = '1px solid rgba(255,255,255,0.3)';
 
-        const messageElement = document.createElement('div');
-        messageElement.className = 'toast-message';
-        messageElement.textContent = message;
+        // ── Colour scheme (soft tones) ───────────────────────
+        let bgColor, textColor, borderColor;
 
-        toast.appendChild(icon);
-        toast.appendChild(messageElement);
-        toastContainer.appendChild(toast);
+        switch (type) {
+            case 'success':
+                bgColor = '#d4edda';
+                textColor = '#155724';
+                borderColor = '#c3e6cb';
+                break;
+            case 'warning':
+                bgColor = '#fff3cd';
+                textColor = '#856404';
+                borderColor = '#ffc107';
+                break;
+            case 'error':
+                bgColor = '#f8d7da';
+                textColor = '#721c24';
+                borderColor = '#f5c6cb';
+                break;
+            default:
+                bgColor = '#d1ecf1';
+                textColor = '#0c5460';
+                borderColor = '#bee5eb';
+        }
 
+        toast.style.backgroundColor = bgColor;
+        toast.style.color = textColor;
+        toast.style.borderColor = borderColor;
+
+        // ── Message container ────────────────────────────────
+        const msgContainer = document.createElement('div');
+        msgContainer.style.display = 'flex';
+        msgContainer.style.alignItems = 'center';
+        msgContainer.style.gap = '12px';
+        msgContainer.style.flex = '1';
+
+        // Icon
+        const icon = document.createElement('span');
+        icon.style.fontSize = '24px';
+        if (type === 'success') icon.textContent = '✅';
+        else if (type === 'warning') icon.textContent = '⚠️';
+        else icon.textContent = '❌';
+        msgContainer.appendChild(icon);
+
+        // Text
+        const textSpan = document.createElement('span');
+        textSpan.textContent = message;
+        textSpan.style.lineHeight = '1.5';
+        msgContainer.appendChild(textSpan);
+
+        toast.appendChild(msgContainer);
+
+        // ── Close button ──────────────────────────────────────
+        const closeBtn = document.createElement('button');
+        closeBtn.textContent = '×';
+        closeBtn.style.background = 'transparent';
+        closeBtn.style.border = 'none';
+        closeBtn.style.fontSize = '28px';
+        closeBtn.style.fontWeight = '300';
+        closeBtn.style.cursor = 'pointer';
+        closeBtn.style.color = textColor;
+        closeBtn.style.opacity = '0.6';
+        closeBtn.style.transition = 'opacity 0.2s';
+        closeBtn.style.padding = '0 5px';
+        closeBtn.style.lineHeight = '1';
+
+        closeBtn.onmouseover = () => { closeBtn.style.opacity = '1'; };
+        closeBtn.onmouseout = () => { closeBtn.style.opacity = '0.6'; };
+
+        closeBtn.onclick = function() {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(-50%) translateY(-40px) scale(0.95)';
+            setTimeout(() => { if (toast.parentNode) toast.remove(); }, 500);
+        };
+
+        toast.appendChild(closeBtn);
+
+        // ── Append to page ────────────────────────────────────
+        document.body.appendChild(toast);
+
+        // ── Animate in ────────────────────────────────────────
+        requestAnimationFrame(() => {
+            toast.style.opacity = '1';
+            toast.style.transform = 'translateX(-50%) translateY(0) scale(1)';
+        });
+
+        // ── Auto‑hide after 10 seconds (so it stays until redirect) ──
         setTimeout(() => {
-            toast.classList.add('toast-show');
-        }, 10);
-
-        setTimeout(() => {
-            toast.classList.add('toast-exit');
-            setTimeout(() => {
-                if (toastContainer.contains(toast)) {
-                    toastContainer.removeChild(toast);
-                }
-            }, 300);
-        }, 4000);
+            if (toast.parentNode) {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(-50%) translateY(-40px) scale(0.95)';
+                setTimeout(() => { if (toast.parentNode) toast.remove(); }, 500);
+            }
+        }, 10000);
     }
-});
+});   
