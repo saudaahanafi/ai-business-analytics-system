@@ -3,65 +3,477 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI-Driven Business Analytics - Enterprise Platform</title>
+    <title>AI-Driven Business Analytics — Enterprise Intelligence Platform</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="frontend/static/css/landing.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-
-
-    
 </head>
 <body>
-    <div class="landing-container">
-        <header class="landing-header">
-            <div class="header-content">
-                <h1 class="system-title">AI-Driven Business Analytics</h1>
-                <p class="system-tagline">Enterprise Intelligence Platform for Modern Business</p>
+
+<!-- ═══════════════════════════════════════════════
+     NAVBAR
+════════════════════════════════════════════════ -->
+<nav class="navbar" id="navbar">
+    <div class="nav-inner">
+        <a href="index.html" class="nav-brand">
+            <div class="nav-logo">
+                <svg viewBox="0 0 32 32" fill="none">
+                    <circle cx="16" cy="16" r="14" fill="#0ea5e9" opacity="0.15"/>
+                    <path d="M8 22L13 14l4 5 3-7 4 8" stroke="#0ea5e9" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <circle cx="24" cy="8" r="2.5" fill="#38bdf8"/>
+                </svg>
             </div>
-        </header>
-
-        <main class="landing-main">
-            <section class="welcome-section">
-                <div class="welcome-card">
-                    <h2>Welcome to Your Analytics Gateway</h2>
-                    <p class="welcome-description">
-                        Unlock powerful business insights powered by artificial intelligence. 
-                        Access comprehensive analytics, real-time reporting, and data-driven decision-making tools.
-                    </p>
-                </div>
-
-                <div class="features-grid">
-                    <div class="feature-box">
-                        <h3>Real-Time Analytics</h3>
-                        <p>Monitor your business metrics instantly with live data streams</p>
-                    </div>
-                    <div class="feature-box">
-                        <h3>AI Intelligence</h3>
-                        <p>Leverage advanced algorithms to predict trends and optimize performance</p>
-                    </div>
-                    <div class="feature-box">
-                        <h3>Enterprise Security</h3>
-                        <p>Bank-level encryption and authentication for your data protection</p>
-                    </div>
-                </div>
-            </section>
-
-            <section class="cta-section">
-                <div class="cta-container">
-                    <div class="cta-button-group">
-                        <a href="login.html" class="cta-button cta-login">
-                            Sign In to Dashboard  
-                        </a>
-                        <a href="register.html" class="cta-button cta-register">
-                            Create New Account
-                        </a>
-                    </div>
-                </div>
-            </section>
-        </main>
-
-        <footer class="landing-footer">
-            <p>&copy; 2024 AI Business Analytics. Enterprise Platform. All rights reserved.</p>
-        </footer>
+            <span class="nav-title">ANALYTIQ</span>
+        </a>
+        <div class="nav-links">
+            <a href="#features">Features</a>
+            <a href="#how-it-works">How It Works</a>
+            <a href="#pricing">Pricing</a>
+            <a href="login.html">Sign In</a>
+            <a href="register.html" class="nav-cta">Get Started Free</a>
+        </div>
+        <button class="nav-hamburger" id="hamburger" aria-label="Open menu">
+            <span></span><span></span><span></span>
+        </button>
     </div>
+    <!-- Mobile drawer -->
+    <div class="nav-drawer" id="navDrawer">
+        <a href="#features" onclick="closeDrawer()">Features</a>
+        <a href="#how-it-works" onclick="closeDrawer()">How It Works</a>
+        <a href="#pricing" onclick="closeDrawer()">Pricing</a>
+        <a href="login.html">Sign In</a>
+        <a href="register.html" class="nav-drawer-cta">Get Started</a>  
+    </div>
+</nav>
+
+<!-- ═══════════════════════════════════════════════
+     HERO
+════════════════════════════════════════════════ -->
+<section class="hero" id="home">
+    <div class="hero-bg-grid"></div>
+    <div class="hero-orb hero-orb-1"></div>
+    <div class="hero-orb hero-orb-2"></div>
+
+    <div class="hero-inner">
+        <div class="hero-eyebrow">
+            <span class="eyebrow-dot"></span>
+            AI-Powered · Real-Time · Enterprise-Grade
+        </div>
+        <h1 class="hero-title">
+            Turn Raw Business Data<br>
+            <span class="hero-title-accent">into Intelligent Decisions.</span>
+        </h1>
+        <p class="hero-subtitle">
+            Upload your sales CSV and receive AI-powered forecasts, KPI dashboards, 
+            risk alerts, and strategic recommendations — in seconds, not days.
+        </p>
+        <div class="hero-actions">
+            <a href="register.html" class="btn-hero-primary">
+                <svg viewBox="0 0 20 20" fill="currentColor" width="18"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                Create an Account 
+            </a>
+            <a href="login.html" class="btn-hero-secondary">Sign In to Dashboard</a>
+        </div>
+        <div class="hero-stats">
+            <div class="hero-stat">
+                <span class="hero-stat-num">98%</span>
+                <span class="hero-stat-label">Prediction Accuracy</span>
+            </div>
+            <div class="hero-stat-divider"></div>
+            <div class="hero-stat">
+                <span class="hero-stat-num">1,500+</span>
+                <span class="hero-stat-label">Transactions Analysed</span>
+            </div>
+            <div class="hero-stat-divider"></div>
+            <div class="hero-stat">
+                <span class="hero-stat-num">2</span>
+                <span class="hero-stat-label">ML Models</span>
+            </div>
+            <div class="hero-stat-divider"></div>
+            <div class="hero-stat">
+                <span class="hero-stat-num">100%</span>
+                <span class="hero-stat-label">Automated Reports</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating data cards -->
+    <div class="hero-visual">
+        <div class="hero-card-float card-float-1">
+            <div class="float-card-label">Revenue Trend</div>
+            <div class="float-card-value">↑ 14.2%</div>
+        </div>
+        <div class="hero-card-float card-float-2">
+            <div class="float-card-label">Business Health</div>
+            <div class="float-card-value health-score">88 / 100</div>
+        </div>
+        <div class="hero-card-float card-float-3">
+            <div class="float-card-label">AI Status</div>
+            <div class="float-card-value ai-active">
+                <span class="pulse-dot"></span> Active
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     TRUST BAR
+════════════════════════════════════════════════ -->
+<div class="trust-bar">
+    <div class="trust-bar-inner">
+        <span class="trust-label">Trusted by businesses in</span>
+        <div class="trust-sectors">
+            <span>🌿 Agriculture</span>
+            <span>👗 Fashion Retail</span>
+            <span>💄 Cosmetics</span>
+            <span>🏪 FMCG</span>
+            <span>📦 E-Commerce</span>
+            <span>🍔 Food & Beverage</span>
+            <span> 🧴skincare </span> 
+        </div>   
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     FEATURES
+════════════════════════════════════════════════ -->
+<section class="features" id="features">
+    <div class="section-inner">
+        <div class="section-header">
+            <div class="section-eyebrow">Platform Capabilities</div>
+            <h2 class="section-title">Everything your business needs to win.</h2>
+            <p class="section-subtitle">Six intelligent modules working in unison to transform raw data into competitive advantage.</p>
+        </div>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon-wrap" style="--icon-color:#0ea5e9;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                </div>
+                <h3>Revenue Forecasting</h3>
+                <p>Predict future revenue using trained ML regression models calibrated to your specific industry patterns and data.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon-wrap" style="--icon-color:#06b6d4;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+                </div>
+                <h3>Live KPI Dashboards</h3>
+                <p>Professional charts, revenue timelines, and product performance metrics — refreshed on every upload, instantly.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon-wrap" style="--icon-color:#3b82f6;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                </div>
+                <h3>Inventory Optimisation</h3>
+                <p>Detect low-stock thresholds and prevent supply disruptions before they impact customer satisfaction and revenue.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon-wrap" style="--icon-color:#8b5cf6;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+                </div>
+                <h3>AI Business Insights</h3>
+                <p>Automatically surface hidden sales trends, seasonal patterns, and market signals buried in your transaction data.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon-wrap" style="--icon-color:#ef4444;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                </div>
+                <h3>Risk Detection</h3>
+                <p>Receive early operational warnings and risk alerts before problems escalate into costly, irreversible business failures.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon-wrap" style="--icon-color:#10b981;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+                </div>
+                <h3>Decision Support</h3>
+                <p>Context-aware strategic recommendations tailored to your business sector — ready to present to stakeholders.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     HOW IT WORKS
+════════════════════════════════════════════════ -->
+<section class="how-it-works" id="how-it-works">
+    <div class="section-inner">
+        <div class="section-header">
+            <div class="section-eyebrow">Process</div>
+            <h2 class="section-title">From CSV to Boardroom in 5 Steps.</h2>
+            <p class="section-subtitle">Your data runs through an automated intelligence pipeline — no setup, no code, no waiting.</p>
+        </div>
+        <div class="pipeline-steps">
+            <div class="pipeline-step">
+                <div class="step-number">01</div>
+                <div class="step-content">
+                    <div class="step-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    </div>
+                    <h3>Upload CSV</h3>
+                    <p>Drag-and-drop your sales export from any POS, ERP, or spreadsheet tool.</p>
+                </div>
+            </div>
+            <div class="pipeline-arrow">→</div>
+            <div class="pipeline-step">
+                <div class="step-number">02</div>
+                <div class="step-content">
+                    <div class="step-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
+                    </div>
+                    <h3>AI Cleans & Validates</h3>
+                    <p>The pipeline detects headers, handles missing values, and normalises your dataset automatically.</p>
+                </div>
+            </div>
+            <div class="pipeline-arrow">→</div>
+            <div class="pipeline-step">
+                <div class="step-number">03</div>
+                <div class="step-content">
+                    <div class="step-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+                    </div>
+                    <h3>ML Models Run</h3>
+                    <p>A regression forecaster and a classification engine analyse your data simultaneously in real time.</p>
+                </div>
+            </div>
+            <div class="pipeline-arrow">→</div>
+            <div class="pipeline-step">
+                <div class="step-number">04</div>
+                <div class="step-content">
+                    <div class="step-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+                    </div>
+                    <h3>KPIs & Charts Built</h3>
+                    <p>Revenue totals, profit margins, trend lines, and product rankings render instantly in your dashboard.</p>
+                </div>
+            </div>
+            <div class="pipeline-arrow">→</div>
+            <div class="pipeline-step">
+                <div class="step-number">05</div>
+                <div class="step-content">
+                    <div class="step-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                    </div>
+                    <h3>Report Delivered</h3>
+                    <p>An executive report with AI recommendations is generated and ready to share with your team.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     STATS BAND
+════════════════════════════════════════════════ -->
+<section class="stats-band">
+    <div class="stats-band-inner">
+        <div class="stat-item">
+            <div class="stat-num" data-target="98">0</div>
+            <div class="stat-suffix">%</div>
+            <div class="stat-label">Prediction Accuracy</div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+            <div class="stat-num" data-target="1500">0</div>
+            <div class="stat-suffix">+</div>
+            <div class="stat-label">Transactions Analysed</div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+            <div class="stat-num" data-target="2">0</div>
+            <div class="stat-suffix"></div>
+            <div class="stat-label">ML Models Deployed</div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+            <div class="stat-num" data-target="100">0</div>
+            <div class="stat-suffix">%</div>
+            <div class="stat-label">Automated Reporting</div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     PRICING
+════════════════════════════════════════════════ -->
+<section class="pricing" id="pricing">
+    <div class="section-inner">
+        <div class="section-header">
+            <div class="section-eyebrow">Pricing</div>
+            <h2 class="section-title">One Plan. Full Access.</h2>
+            <p class="section-subtitle">Everything the platform offers, at a price that works for you. No hidden fees, no feature limits.</p>
+        </div>
+
+        <!-- Toggle -->
+        <div class="pricing-toggle-wrap">
+            <span class="toggle-label" id="toggleMonthlyLabel" style="color:var(--gray-400);">Monthly</span>
+            <button class="pricing-toggle" id="pricingToggle" aria-label="Toggle billing period">
+                <span class="pricing-toggle-knob"></span>
+            </button>
+            <span class="toggle-label" id="toggleAnnualLabel">
+                Annual <span class="save-pill">Save 17%</span>
+            </span>
+        </div>
+
+        <!-- Single centered Pro card -->
+        <div class="pricing-single">
+            <div class="pricing-card pricing-card-pro">
+                <div class="pro-badge">Full Access — All Features Included</div>
+
+                <div class="pricing-card-split">
+
+                    <!-- Left: price + billing info -->
+                    <div class="pricing-card-left">
+                        <div class="plan-icon" style="background:rgba(255,255,255,0.15);">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" width="22" height="22">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <div class="plan-name">Pro</div>
+                        <div class="plan-desc">The complete AI analytics engine for your business.</div>
+
+                        <div class="plan-price-wrap">
+                            <span class="plan-currency">$</span>
+                            <span class="plan-price" id="proPrice">99</span>
+                            <span class="plan-period" id="proPeriod">/yr</span>
+                        </div>
+                        <div class="plan-billing-note" id="proBillingNote">Billed once a year — you save $21 vs monthly.</div>
+
+                        <a href="payment.html" class="plan-btn plan-btn-pro" id="proCta">Activate Now — $99/yr</a>
+
+                        <p class="pricing-card-secure">
+                            🔐 Secure payment · Cancel anytime · 30-day money-back guarantee
+                        </p>
+                    </div>
+
+                    <!-- Right: feature list -->
+                    <div class="pricing-card-right">
+                        <p class="features-heading">Everything included:</p>
+                        <ul class="plan-features">
+                            <li><span class="feat-check-pro">✓</span> Unlimited CSV uploads</li>
+                            <li><span class="feat-check-pro">✓</span> Full KPI dashboard &amp; live charts</li>
+                            <li><span class="feat-check-pro">✓</span> AI revenue forecasting</li>
+                            <li><span class="feat-check-pro">✓</span> Risk detection &amp; operational alerts</li>
+                            <li><span class="feat-check-pro">✓</span> Strategic AI recommendations</li>
+                            <li><span class="feat-check-pro">✓</span> Report export (JSON / CSV / HTML)</li>
+                            <li><span class="feat-check-pro">✓</span> Product performance rankings</li>
+                            <li><span class="feat-check-pro">✓</span> Profit margin &amp; ROI analysis</li>
+                            <li><span class="feat-check-pro">✓</span> ML model diagnostics (R² &amp; accuracy)</li>
+                            <li><span class="feat-check-pro">✓</span> Industry-specific insights</li>
+                        </ul>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Guarantee strip -->
+        <div class="pricing-guarantee">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            30-day money-back guarantee &nbsp;·&nbsp; Cancel anytime &nbsp;·&nbsp; Secure payment — we never store card details
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     SOCIAL PROOF / TESTIMONIALS
+════════════════════════════════════════════════ -->
+<section class="testimonials">
+    <div class="section-inner">
+        <div class="section-header">
+            <div class="section-eyebrow">Social Proof</div>
+            <h2 class="section-title">What Our Users Say.</h2>
+            <p class="section-subtitle">Real feedback from business owners and analysts using the platform every day.</p>
+        </div>
+        <div class="testimonials-grid">
+            <div class="testimonial-card">
+                <div class="testimonial-stars">★★★★★</div>
+                <p>"We identified our top-performing SKU within minutes of uploading. The AI recommendations were spot-on and saved us from a costly inventory mistake."</p>
+                <div class="testimonial-author">
+                    <div class="author-avatar" style="background:linear-gradient(135deg,#0ea5e9,#0284c7);">A</div>
+                    <div>
+                        <div class="author-name">Ahmad Dauda Muhammad </div>
+                        <div class="author-role">Operations Manager · Fashion Retail</div>
+                    </div>
+                </div>
+            </div>
+            <div class="testimonial-card">
+                <div class="testimonial-stars">★★★★★</div>
+                <p>"The forecasting accuracy is remarkable. We replaced a full BI tool subscription with this platform and cut our analytics budget by 60%."</p>
+                <div class="testimonial-author">
+                    <div class="author-avatar" style="background:linear-gradient(135deg,#8b5cf6,#6d28d9);">JB</div>
+                    <div>
+                        <div class="author-name">Jamal Bukhari </div>
+                        <div class="author-role">CFO · E-Commerce SME</div>
+                    </div>
+                </div>
+            </div>
+            <div class="testimonial-card">
+                <div class="testimonial-stars">★★★★★</div>
+                <p>"I'm not a data person, but this platform speaks my language. The risk alerts alone have saved my business from two stockout crises this quarter."</p>
+                <div class="testimonial-author">
+                    <div class="author-avatar" style="background:linear-gradient(135deg,#10b981,#059669);">S</div>
+                    <div>
+                        <div class="author-name">Saudatu Hanafi</div>
+                        <div class="author-role">Founder · Food & Beverage</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>  
+
+<!-- ═══════════════════════════════════════════════
+     CTA BAND
+════════════════════════════════════════════════ -->
+<section class="cta-band">
+    <div class="cta-band-grid"></div>
+    <div class="cta-band-inner">
+        <h2 class="cta-band-title">
+            Ready to see what your data<br>
+            <span class="cta-band-accent">has been hiding?</span>
+        </h2>
+        <p class="cta-band-sub">
+            Join businesses already using AI to make faster, smarter decisions.
+            No setup. No code. Just upload and go.
+        </p>
+        <div class="cta-band-actions">
+            <a href="register.html" class="btn-hero-primary">
+                <svg viewBox="0 0 20 20" fill="currentColor" width="18"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                Create An  Account
+            </a>
+            <a href="login.html" class="btn-hero-secondary">Sign In →</a>
+        </div>
+        <p class="cta-band-note">No credit card required · Full platform access on Pro trial</p>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     FOOTER
+════════════════════════════════════════════════ -->
+<footer class="footer">
+    <div class="footer-inner">
+        <div class="footer-brand">
+            <svg viewBox="0 0 32 32" fill="none" width="28" height="28">
+                <circle cx="16" cy="16" r="14" fill="#0ea5e9" opacity="0.2"/>
+                <path d="M8 22L13 14l4 5 3-7 4 8" stroke="#38bdf8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <div>
+                <div class="footer-title">ANALYTIQ</div>
+                <div class="footer-tagline">AI-Powered Business Intelligence</div>
+            </div>
+        </div>
+        <div class="footer-links">
+            <a href="#features">Features</a>
+            <a href="#how-it-works">How It Works</a>
+            <a href="#pricing">Pricing</a>
+            <a href="login.html">Sign In</a>
+            <a href="register.html">Register</a>
+        </div>
+        <span class="footer-copy">© 2025 ANALYTIQ. All rights reserved.</span>
+    </div>
+</footer>
+
+<script src="frontend/static/js/script.js"></script>
 </body>
-</html>
+</html>   
