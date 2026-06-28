@@ -243,4 +243,4 @@ document.addEventListener('DOMContentLoaded', function() {
             messageDiv.style.border = '1px solid ' + borderColor;
         }
     }
-});      
+});        

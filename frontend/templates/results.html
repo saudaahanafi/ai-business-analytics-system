@@ -3,94 +3,310 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Analytics Results</title>
+    <title>Analytics Report — AnalyticsGateway</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../static/css/results.css">
 </head>
 <body>
-    <div class="container">
-        <!-- Navigation Header -->
-        <header class="results-header">
-            <a href="dashboard.html" class="back-link">← Back to Upload Hub</a>
-            <h1>Analytics Report</h1>
-        </header>
 
-        <main class="results-content">
-            <!-- Industry Badge -->
-            <div class="industry-badge">
-                <span>Industry: <strong id="industryBadge">--</strong></span>
+<!-- ═══════════════════════════════════════════════
+     NAVBAR
+════════════════════════════════════════════════ -->
+<nav class="navbar">
+    <div class="nav-inner">
+        <a href="dashboard.html" class="nav-brand">
+            <div class="nav-logo">
+                <svg viewBox="0 0 32 32" fill="none">
+                    <circle cx="16" cy="16" r="14" fill="#0ea5e9" opacity="0.15"/>
+                    <path d="M8 22L13 14l4 5 3-7 4 8" stroke="#0ea5e9" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <circle cx="24" cy="8" r="2.5" fill="#38bdf8"/>
+                </svg>
             </div>
+            <span class="nav-title">ANALYTIQ</span> 
+        </a>
+        <div class="nav-actions">
+            <a href="dashboard.html" class="btn-nav-back">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                    <path d="M15 10H5M5 10l5-5M5 10l5 5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>Back to Dashboard</span>
+            </a>
+            <button class="btn-download" onclick="openDownloadModal()">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M10 3v10M10 13l-3-3M10 13l3-3M4 16h12" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Download Report
+            </button>
+        </div>
+    </div>
+</nav>
 
-            <!-- Financial Performance Row -->
-            <section class="financial-section">
-                <div class="kpi-card">
-                    <h3>Total Revenue</h3>
-                    <p id="totalRevenue" class="kpi-value">--</p>
-                </div>
-                <div class="kpi-card">
-                    <h3>Net Profit</h3>
-                    <p id="netProfit" class="kpi-value">--</p>
-                </div>
-                <div class="kpi-card">
-                    <h3>Profit Margin / ROI</h3>
-                    <p id="profitMargin" class="kpi-value">--</p>
-                </div>
-                <div class="kpi-card">
-                    <h3>Top Selling Product</h3>
-                    <p id="topProduct" class="kpi-value">--</p>
-                </div>
-            </section>
+<!-- ═══════════════════════════════════════════════
+     REPORT HERO BANNER
+════════════════════════════════════════════════ -->
+<section class="report-hero">
+    <div class="report-hero-grid"></div>
+    <div class="report-hero-orb report-hero-orb-1"></div>
+    <div class="report-hero-orb report-hero-orb-2"></div>
+    <div class="report-hero-inner">
+        <div class="report-eyebrow">
+            <span class="eyebrow-dot"></span>
+            AI-Powered Analysis · Machine Learning · Insights
+        </div>
+        <h1 class="report-hero-title">
+            Your Business Analytics<br>
+            <span>Report is Ready.</span>
+        </h1>
+        <p class="report-hero-sub">
+            Our models have processed your data and generated financial insights, predictive trends,
+            and strategic recommendations tailored to your industry.
+        </p>
+        <div class="report-meta-row">
+            <div class="industry-badge">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                    <path d="M2 12L6 8l3 3 5-6" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Industry: <strong id="industryBadge">--</strong>
+            </div>
+            <span class="report-timestamp" id="reportTimestamp"></span>
+        </div>
+    </div>
+</section>
 
-            <!-- Charts Row -->
-            <section class="charts-section">
-                <div class="chart-container">
-                    <h2>Revenue Trend Analysis</h2>
-                    <canvas id="revenueTrendChart"></canvas>
-                </div>
-                <div class="chart-container">
-                    <h2>Product Performance Ranking</h2>
-                    <canvas id="productPerformanceChart"></canvas>
-                </div>
-            </section>
+<!-- ═══════════════════════════════════════════════
+     MAIN CONTENT
+════════════════════════════════════════════════ -->
+<div class="results-wrapper">
 
-            <!-- AI Insights Row -->
-            <section class="insights-section">
-                <div class="insight-panel">
-                    <h2>Operational Inventory Critical Risks & Warnings</h2>
-                    <div class="alert-container">
-                        <ul id="risksList" class="risks-list">
-                            <li class="loading-item">Loading risk analysis...</li>
-                        </ul>
-                    </div>
+    <!-- KPI Cards -->
+    <div>
+        <span class="section-label">Financial Performance</span>
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 14.5v-9" stroke="currentColor" stroke-linecap="round"/>
+                        <path d="M15 8H9.5a2.5 2.5 0 000 5h5a2.5 2.5 0 010 5H8" stroke="currentColor" stroke-linecap="round"/>
+                    </svg>
                 </div>
-                <div class="insight-panel">
-                    <h2>Strategic Machine Learning Directives & Action Items</h2>
-                    <div class="recommendations-container">
-                        <ul id="recommendationsList" class="recommendations-list">
-                            <li class="loading-item">Loading recommendations...</li>
-                        </ul>
-                    </div>
+                <div class="kpi-label">Total Revenue</div>
+                <div id="totalRevenue" class="kpi-value">--</div>
+                <div class="kpi-sub">Gross income across all products</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 12h-4l-3 9L9 3l-3 9H2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
                 </div>
-            </section>
-
-            <!-- Model Diagnostics Footer -->
-            <footer class="diagnostics-section">
-                <div class="diagnostic-item">
-                    <span class="diagnostic-label">Model Engine Variant:</span>
-                    <span id="selectedModel" class="diagnostic-value">--</span>
+                <div class="kpi-label">Net Profit</div>
+                <div id="netProfit" class="kpi-value">--</div>
+                <div class="kpi-sub">After costs & operational expenses</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M12 8v4l3 3" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
                 </div>
-                <div class="diagnostic-item">
-                    <span class="diagnostic-label">R² Determination Score:</span>
-                    <span id="modelR2" class="diagnostic-value">--</span>
+                <div class="kpi-label">Profit Margin / ROI</div>
+                <div id="profitMargin" class="kpi-value">--</div>
+                <div class="kpi-sub">Return on total investment</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.77 5.82 21 7 14.14 2 9.27l6.91-1.01L12 2z" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
                 </div>
-                <div class="diagnostic-item">
-                    <span class="diagnostic-label">Classifier Accuracy Performance:</span>
-                    <span id="classifierAccuracy" class="diagnostic-value">--</span>
-                </div>
-            </footer>
-        </main>
+                <div class="kpi-label">Top Selling Product</div>
+                <div id="topProduct" class="kpi-value">--</div>
+                <div class="kpi-sub">Highest revenue contributor</div>
+            </div>
+        </div>
     </div>
 
-    <script src="../static/js/results.js"></script>
+    <!-- Executive Summary -->
+    <div class="exec-summary">
+        <div class="exec-summary-header">
+            <div class="exec-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                    <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <div>
+                <h3>Executive Performance Summary</h3>
+                <p>Snapshot of your most critical business indicators from this report</p>
+            </div>
+            <div class="exec-health-badge">
+                Business Health: <strong>Analysis Complete ✓</strong>
+            </div>
+        </div>
+        <div class="exec-stats-row">
+            <div class="exec-stat">
+                <div class="exec-stat-label">Model R² Score</div>
+                <div id="execR2" class="exec-stat-value">--</div>
+            </div>
+            <div class="exec-stat">
+                <div class="exec-stat-label">Classifier Accuracy</div>
+                <div id="execAccuracy" class="exec-stat-value">--</div>
+            </div>
+            <div class="exec-stat">
+                <div class="exec-stat-label">ML Engine</div>
+                <div id="execModel" class="exec-stat-value" style="font-size:1rem;">--</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts -->
+    <div>
+        <span class="section-label">Trend & Performance Analysis</span>
+        <div class="charts-row">
+            <div class="chart-card">
+                <div class="chart-card-header">
+                    <h3>Revenue Trend Analysis</h3>
+                    <span class="chart-badge">Monthly</span>
+                </div>
+                <p class="chart-sub-text">Period-over-period revenue performance and trajectory</p>
+                <canvas id="revenueTrendChart"></canvas>
+            </div>
+            <div class="chart-card">
+                <div class="chart-card-header">
+                    <h3>Product Performance Ranking</h3>
+                    <span class="chart-badge">By Volume</span>
+                </div>
+                <p class="chart-sub-text">Units sold per product — identifying your strongest SKUs</p>
+                <canvas id="productPerformanceChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Insights -->
+    <div>
+        <span class="section-label">AI-Generated Insights</span>
+        <div class="insights-row">
+            <div class="insight-card risks-card">
+                <div class="insight-card-header">
+                    <div class="insight-icon risk-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+                            <path d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <h3>Operational Risks & Warnings</h3>
+                    <span class="insight-count" id="risksCount">0</span>
+                </div>
+                <ul id="risksList" class="insight-list">
+                    <li style="color:#94a3b8;font-style:italic;background:#f8fafc;border-color:#e2e8f0;">Loading risk analysis...</li>
+                </ul>
+            </div>
+            <div class="insight-card recs-card">
+                <div class="insight-card-header">
+                    <div class="insight-icon rec-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+                            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <h3>Strategic Recommendations</h3>
+                    <span class="insight-count" id="recsCount">0</span>
+                </div>
+                <ul id="recommendationsList" class="insight-list">
+                    <li style="color:#94a3b8;font-style:italic;background:#f8fafc;border-color:#e2e8f0;">Loading recommendations...</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Model Diagnostics Bar -->
+    <div class="diagnostics-bar">
+        <span class="diag-label">ML Diagnostics</span>
+        <div class="diag-items">
+            <div class="diag-item">
+                <span class="diag-key">Model Engine</span>
+                <span id="selectedModel" class="diag-val">--</span>
+            </div>
+            <div class="diag-sep"></div>
+            <div class="diag-item">
+                <span class="diag-key">R² Score</span>
+                <span id="modelR2" class="diag-val">--</span>
+            </div>
+            <div class="diag-sep"></div>
+            <div class="diag-item">
+                <span class="diag-key">Classifier Accuracy</span>
+                <span id="classifierAccuracy" class="diag-val">--</span>
+            </div>
+        </div>
+        <span class="diag-ml-tag">
+            <span style="width:7px;height:7px;background:#10b981;border-radius:50%;display:inline-block;"></span>
+            Analysis Complete
+        </span>
+    </div>
+
+</div><!-- /results-wrapper -->
+
+<!-- ═══════════════════════════════════════════════
+     FOOTER
+════════════════════════════════════════════════ -->
+<footer class="results-footer">
+    <div class="results-footer-inner">
+        <div class="footer-brand">
+            <svg viewBox="0 0 32 32" fill="none" width="28" height="28">
+                <circle cx="16" cy="16" r="14" fill="#0ea5e9" opacity="0.2"/>
+                <path d="M8 22L13 14l4 5 3-7 4 8" stroke="#38bdf8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <div>
+                <div class="footer-title">ANALYTIQ</div> 
+                <div class="footer-tagline">AI-Powered Business Intelligence</div>
+            </div>
+        </div>
+        <span class="footer-copy">© 2025 ANALYTIQ. All rights reserved.</span>
+    </div>
+</footer>
+
+<!-- ═══════════════════════════════════════════════
+     DOWNLOAD MODAL
+════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="downloadModal" onclick="closeDownloadModalOutside(event)">
+    <div class="modal-box">
+        <button class="modal-close" onclick="closeDownloadModal()">✕</button>
+        <div class="modal-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M16 12l-4 4m0 0l-4-4m4 4V4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </div>
+        <h3>Download Analytics Report</h3>
+        <p>Choose a format to export your full business analytics report including KPIs, charts data, risks, and recommendations.</p>
+        <div class="modal-options">
+            <button class="modal-opt-btn" onclick="downloadCSV()">
+                <div class="modal-opt-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 17H5a2 2 0 00-2 2v0a2 2 0 002 2h4M15 17h4a2 2 0 012 2v0a2 2 0 01-2 2h-4M9 3H5a2 2 0 00-2 2v0a2 2 0 002 2h4M15 3h4a2 2 0 012 2v0a2 2 0 01-2 2h-4" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M12 3v18" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="3 3"/>
+                    </svg>
+                </div>
+                <div>
+                    <span class="modal-opt-label">CSV Spreadsheet</span>
+                    <span class="modal-opt-desc">KPIs and insights in a flat table — open in Excel or Sheets</span>
+                </div>
+            </button>
+            <button class="modal-opt-btn" onclick="downloadHTML()">
+                <div class="modal-opt-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M10 20l4-16M17 5l3 7-3 7M7 5L4 12l3 7" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <div>
+                    <span class="modal-opt-label">HTML Report</span>
+                    <span class="modal-opt-desc">Styled printable report — open in browser, save as PDF</span>
+                </div>
+            </button>
+        </div>
+    </div>
+</div>
+
+<script src="../static/js/results.js"></script>
 </body>
-</html>
+</html>     
+   
