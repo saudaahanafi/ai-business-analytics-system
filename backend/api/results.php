@@ -46,4 +46,4 @@ if (isset($_GET['upload_id'])) {
     http_response_code(400);
     echo json_encode(['error' => 'Missing required parameter: upload_id']);
 }
-?>
+?>    

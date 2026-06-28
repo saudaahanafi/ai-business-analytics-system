@@ -3,7 +3,7 @@ let revenueTrendChart = null;
 let productPerformanceChart = null;
 
 // Store report data globally for download functions
-let _reportData = null;
+let _reportData = null;  
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
