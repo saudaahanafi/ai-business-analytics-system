@@ -1,6 +1,8 @@
 // =============================================================
 // static/js/register.js
 // AI Business Analytics System — Registration Page Logic
+// Original technalities fully preserved.
+// Addition: password visibility toggle wired to new HTML button.
 // =============================================================
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -21,6 +23,24 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // ── Field focus animations ──────────────────────────────────
   initializeFieldAnimations();
+
+  // ── Password visibility toggle (new UI, same input) ─────────
+  const passwordToggle = document.getElementById('passwordToggle');
+  if (passwordToggle) {
+    passwordToggle.addEventListener('click', function () {
+      const isHidden = registerPassword.type === 'password';
+      registerPassword.type = isHidden ? 'text' : 'password';
+      // Swap icon: eye-off when visible, eye when hidden
+      const eyeIcon = document.getElementById('eyeIcon');
+      if (eyeIcon) {
+        eyeIcon.innerHTML = isHidden
+          ? /* eye-off */
+            '<path d="M17.94 17.94A10.07 10.07 0 0110 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0110 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24" stroke-linecap="round" stroke-linejoin="round"/><line x1="1" y1="1" x2="23" y2="23" stroke-linecap="round"/>'
+          : /* eye */
+            '<path d="M1 10s3-7 9-7 9 7 9 7-3 7-9 7-9-7-9-7z" stroke-linecap="round"/><circle cx="10" cy="10" r="3" stroke-linecap="round"/>';
+      }
+    });
+  }
 
   // ── Real-time validation listeners ─────────────────────────
   registerFullname.addEventListener('input', debounce(() => validateFullname(), 300));
@@ -198,27 +218,27 @@ document.addEventListener('DOMContentLoaded', function () {
     const password = registerPassword.value;
     let strength   = 0;
 
-    if (password.length >= 8)                              strength++;
-    if (/[A-Z]/.test(password))                           strength++;
-    if (/[a-z]/.test(password))                           strength++;
-    if (/[0-9]/.test(password))                           strength++;
-    if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) strength++;
+    if (password.length >= 8)                                          strength++;
+    if (/[A-Z]/.test(password))                                        strength++;
+    if (/[a-z]/.test(password))                                        strength++;
+    if (/[0-9]/.test(password))                                        strength++;
+    if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password))      strength++;
 
     strengthFill.classList.remove('strength-moderate', 'strength-high');
 
     if (strength <= 2) {
       strengthFill.style.width           = '25%';
-      strengthFill.style.backgroundColor = '#dc2626';
+      strengthFill.style.backgroundColor = '#ef4444';
       strengthLabel.textContent          = 'Password Strength: Insecure';
     } else if (strength <= 3) {
       strengthFill.classList.add('strength-moderate');
-      strengthFill.style.width           = '50%';
+      strengthFill.style.width           = '55%';
       strengthFill.style.backgroundColor = '#f59e0b';
       strengthLabel.textContent          = 'Password Strength: Moderate';
     } else {
       strengthFill.classList.add('strength-high');
       strengthFill.style.width           = '100%';
-      strengthFill.style.backgroundColor = '#1fb881';
+      strengthFill.style.backgroundColor = '#10b981';
       strengthLabel.textContent          = 'Password Strength: High Security';
     }
   }
@@ -246,10 +266,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Lock form while request is in flight
     isSubmitting = true;
-    registerSubmitBtn.disabled     = true;
-    const originalText             = registerSubmitBtn.textContent;
-    registerSubmitBtn.textContent  = 'Provisioning Channel…';
-    registerSubmitBtn.style.opacity = '0.7';
+    registerSubmitBtn.disabled = true;
+
+    const btnText    = document.getElementById('submitBtnText');
+    const btnArrow   = document.getElementById('submitArrow');
+    const btnSpinner = document.getElementById('submitSpinner');
+
+    if (btnText)    btnText.textContent = 'Provisioning Channel…';
+    if (btnArrow)   btnArrow.classList.add('hidden');
+    if (btnSpinner) btnSpinner.classList.remove('hidden');
 
     const registrationData = {
       fullname:        registerFullname.value.trim(),
@@ -268,12 +293,9 @@ document.addEventListener('DOMContentLoaded', function () {
     .then(function (data) {
       if (data.success) {
         showToast('Account created! Redirecting to payment…', 'success');
-
-        // ── NEW: Route directly to payment page so new users subscribe ──
         setTimeout(function () {
           window.location.href = 'payment.html';
         }, 2000);
-
       } else {
         showToast(data.message || 'Registration failed. Please try again.', 'error');
         resetSubmitButton();
@@ -286,10 +308,11 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     function resetSubmitButton() {
-      isSubmitting                   = false;
-      registerSubmitBtn.disabled     = false;
-      registerSubmitBtn.textContent  = originalText;
-      registerSubmitBtn.style.opacity = '1';
+      isSubmitting               = false;
+      registerSubmitBtn.disabled = false;
+      if (btnText)    btnText.textContent = 'Create Account';
+      if (btnArrow)   btnArrow.classList.remove('hidden');
+      if (btnSpinner) btnSpinner.classList.add('hidden');
     }
   });
 
@@ -316,18 +339,14 @@ document.addEventListener('DOMContentLoaded', function () {
     toast.appendChild(messageElement);
     toastContainer.appendChild(toast);
 
-    setTimeout(function () {
-      toast.classList.add('toast-show');
-    }, 10);
+    setTimeout(function () { toast.classList.add('toast-show'); }, 10);
 
     setTimeout(function () {
       toast.classList.add('toast-exit');
       setTimeout(function () {
-        if (toastContainer.contains(toast)) {
-          toastContainer.removeChild(toast);
-        }
+        if (toastContainer.contains(toast)) toastContainer.removeChild(toast);
       }, 300);
     }, 3000);
   }
 
-});   
+});    

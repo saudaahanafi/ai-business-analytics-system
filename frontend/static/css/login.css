@@ -1,7 +1,7 @@
 /* =============================================================
-   register.css
-   AI Business Analytics — Register Page
-   Matches Sky Blue & White Design System (dashboard / landing)
+   login.css
+   AI Business Analytics — Sign In Page
+   Matches Sky Blue & White Design System (dashboard / landing / register)
    ============================================================= */
 
 /* ── Tokens ─────────────────────────────────────────────────── */
@@ -100,20 +100,20 @@ body {
     color: var(--gray-400);
 }
 
-.btn-nav-signin {
+.btn-nav-register {
     font-size: 0.875rem;
     font-weight: 600;
-    color: var(--sky-600);
+    color: var(--white);
     text-decoration: none;
-    padding: 7px 18px;
+    padding: 8px 20px;
+    background: var(--sky-500);
     border-radius: var(--radius-sm);
-    border: 1.5px solid var(--sky-200);
-    transition: all var(--transition);
+    transition: background var(--transition), transform var(--transition);
 }
 
-.btn-nav-signin:hover {
-    background: var(--sky-50);
-    border-color: var(--sky-400);
+.btn-nav-register:hover {
+    background: var(--sky-600);
+    transform: translateY(-1px);
 }
 
 /* ── Page layout ─────────────────────────────────────────────── */
@@ -168,6 +168,7 @@ body {
     padding: 56px 48px;
 }
 
+/* Eyebrow */
 .panel-eyebrow {
     display: inline-flex;
     align-items: center;
@@ -192,6 +193,7 @@ body {
     50%       { opacity: 0.5; transform: scale(1.4); }
 }
 
+/* Headline */
 .panel-headline {
     font-family: 'Space Grotesk', sans-serif;
     font-size: clamp(1.8rem, 2.5vw, 2.6rem);
@@ -203,7 +205,7 @@ body {
 }
 
 .panel-headline-accent {
-    background: linear-gradient(90deg, #fde68a, #fbbf24);
+    background: linear-gradient(90deg, #7dd3fc, #38bdf8);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -217,12 +219,12 @@ body {
     max-width: 340px;
 }
 
-/* Features list */
+/* Features */
 .panel-features {
     display: flex;
     flex-direction: column;
     gap: 18px;
-    margin-bottom: 40px;
+    margin-bottom: 36px;
 }
 
 .panel-feature {
@@ -261,43 +263,55 @@ body {
     line-height: 1.5;
 }
 
-/* Trust strip */
-.panel-trust {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    padding: 18px 20px;
+/* Live preview strip */
+.panel-preview {
     background: rgba(255,255,255,0.08);
     border: 1px solid rgba(255,255,255,0.14);
     border-radius: var(--radius-md);
+    padding: 18px 20px;
 }
 
-.trust-item {
+.preview-row {
     display: flex;
-    flex-direction: column;
     align-items: center;
-    gap: 2px;
+    gap: 0;
+    justify-content: space-around;
 }
 
-.trust-num {
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 1.3rem;
-    font-weight: 800;
-    color: var(--white);
-    line-height: 1;
+.preview-kpi {
+    text-align: center;
 }
 
-.trust-lbl {
+.preview-kpi-label {
     font-size: 0.68rem;
     color: var(--sky-200);
     font-weight: 500;
     letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-bottom: 5px;
 }
 
-.trust-sep {
-    width: 1px;
-    height: 32px;
-    background: rgba(255,255,255,0.2);
+.preview-kpi-value {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: var(--white);
+}
+
+.ai-live {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    color: #86efac;
+}
+
+.pulse-dot {
+    display: inline-block;
+    width: 7px; height: 7px;
+    background: #4ade80;
+    border-radius: 50%;
+    animation: pulse-dot 1.5s ease-in-out infinite;
 }
 
 /* ── RIGHT PANEL ─────────────────────────────────────────────── */
@@ -313,7 +327,7 @@ body {
 /* ── Form card ───────────────────────────────────────────────── */
 .form-card {
     width: 100%;
-    max-width: 500px;
+    max-width: 440px;
     background: var(--white);
     border: 1px solid var(--gray-200);
     border-radius: var(--radius-lg);
@@ -324,7 +338,7 @@ body {
 /* Card header */
 .form-card-header {
     text-align: center;
-    margin-bottom: 36px;
+    margin-bottom: 32px;
 }
 
 .form-icon-wrap {
@@ -345,7 +359,7 @@ body {
 
 .form-title {
     font-family: 'Space Grotesk', sans-serif;
-    font-size: 1.55rem;
+    font-size: 1.5rem;
     font-weight: 800;
     color: var(--gray-900);
     letter-spacing: -0.02em;
@@ -362,22 +376,37 @@ body {
     margin-bottom: 20px;
 }
 
-.form-group label {
+.label-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 7px;
+}
+
+.form-group label,
+.label-row label {
     display: block;
     font-size: 0.82rem;
     font-weight: 600;
     color: var(--gray-700);
-    margin-bottom: 7px;
     letter-spacing: 0.01em;
 }
 
-.form-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 14px;
+/* Forgot password link — inline next to label */
+.forgot-link {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--sky-600);
+    text-decoration: none;
+    transition: color var(--transition);
 }
 
-/* Input wrapper with icon */
+.forgot-link:hover {
+    color: var(--sky-700);
+    text-decoration: underline;
+}
+
+/* Input wrapper */
 .input-wrap {
     position: relative;
     display: flex;
@@ -417,7 +446,7 @@ body {
     box-shadow: 0 0 0 3px rgba(14,165,233,0.12);
 }
 
-/* Valid / error states (set by JS) */
+/* Valid / error states set by JS */
 .form-input.input-valid {
     border-color: var(--success);
     background: #f0fdf4;
@@ -428,7 +457,7 @@ body {
     background: #fff5f5;
 }
 
-/* Password toggle button */
+/* Password toggle */
 .password-toggle {
     position: absolute;
     right: 12px;
@@ -444,38 +473,6 @@ body {
 
 .password-toggle:hover { color: var(--sky-500); }
 
-/* Password strength */
-.password-strength-container {
-    margin-top: 8px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.strength-track {
-    flex: 1;
-    height: 5px;
-    background: var(--gray-200);
-    border-radius: 99px;
-    overflow: hidden;
-}
-
-.strength-fill {
-    height: 100%;
-    width: 0;
-    border-radius: 99px;
-    background: var(--danger);
-    transition: width 0.35s ease, background 0.35s ease;
-}
-
-.strength-label {
-    font-size: 0.72rem;
-    color: var(--gray-400);
-    white-space: nowrap;
-    font-weight: 500;
-    min-width: 150px;
-}
-
 /* Error messages */
 .error-message {
     font-size: 0.75rem;
@@ -484,37 +481,6 @@ body {
     min-height: 16px;
     font-weight: 500;
 }
-
-/* Terms */
-.terms {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    margin-bottom: 24px;
-}
-
-.terms input[type="checkbox"] {
-    width: 16px; height: 16px;
-    margin-top: 2px;
-    accent-color: var(--sky-500);
-    flex-shrink: 0;
-    cursor: pointer;
-}
-
-.terms label {
-    font-size: 0.82rem;
-    color: var(--gray-500);
-    line-height: 1.5;
-    cursor: pointer;
-}
-
-.terms a {
-    color: var(--sky-600);
-    font-weight: 600;
-    text-decoration: none;
-}
-
-.terms a:hover { text-decoration: underline; }
 
 /* Submit button */
 .btn-submit {
@@ -533,13 +499,14 @@ body {
     border-radius: var(--radius-sm);
     cursor: pointer;
     transition: transform var(--transition), box-shadow var(--transition), opacity var(--transition);
-    box-shadow: 0 4px 16px rgba(14,165,233,0.3);
+    box-shadow: 0 4px 16px rgba(14,165,233,0.30);
     margin-bottom: 14px;
+    margin-top: 8px;
 }
 
 .btn-submit:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 28px rgba(14,165,233,0.4);
+    box-shadow: 0 8px 28px rgba(14,165,233,0.40);
 }
 
 .btn-submit:active { transform: translateY(0); }
@@ -551,11 +518,8 @@ body {
 }
 
 /* Spinner */
-.spinner {
-    animation: spin 0.8s linear infinite;
-}
-
-.hidden { display: none; }
+.spinner { animation: spin 0.8s linear infinite; }
+.hidden  { display: none !important; }
 
 @keyframes spin {
     from { transform: rotate(0deg); }
@@ -564,7 +528,7 @@ body {
 
 /* Secure note */
 .form-secure-note {
-    font-size: 0.75rem;
+    font-size: 0.73rem;
     color: var(--gray-400);
     text-align: center;
     line-height: 1.5;
@@ -588,8 +552,28 @@ body {
 
 .form-footer a:hover { text-decoration: underline; }
 
-/* ── Toast notifications ──────────────────────────────────────── */
-#toastContainer {
+/* Forgot password bottom link */
+.form-footer-sub {
+    text-align: center;
+    margin-top: 14px;
+}
+
+.forgot-link-bottom {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.78rem;
+    color: var(--gray-400);
+    text-decoration: none;
+    transition: color var(--transition);
+}
+
+.forgot-link-bottom:hover { color: var(--sky-600); }
+
+.forgot-link-bottom svg { flex-shrink: 0; }
+
+/* ── Toast container (original id kept, new styles) ───────────── */
+.toast-container {
     position: fixed;
     top: 80px;
     right: 20px;
@@ -600,6 +584,8 @@ body {
     pointer-events: none;
 }
 
+/* login.js uses its own inline-styled toast via showStylishToast —
+   these styles exist as a fallback for any future CSS-class-based toasts */
 .toast {
     display: flex;
     align-items: center;
@@ -616,27 +602,12 @@ body {
     max-width: 340px;
 }
 
-.toast-show {
-    opacity: 1;
-    transform: translateX(0);
-}
+.toast-show  { opacity: 1; transform: translateX(0); }
+.toast-exit  { opacity: 0; transform: translateX(24px); }
 
-.toast-exit {
-    opacity: 0;
-    transform: translateX(24px);
-}
-
-.toast-success {
-    background: #f0fdf4;
-    border: 1px solid #86efac;
-    color: #166534;
-}
-
-.toast-error {
-    background: #fff5f5;
-    border: 1px solid #fca5a5;
-    color: #991b1b;
-}
+.toast-success { background: #f0fdf4; border: 1px solid #86efac; color: #166534; }
+.toast-warning { background: #fffbeb; border: 1px solid #fcd34d; color: #92400e; }
+.toast-error   { background: #fff5f5; border: 1px solid #fca5a5; color: #991b1b; }
 
 .toast-icon {
     width: 24px; height: 24px;
@@ -647,15 +618,9 @@ body {
     flex-shrink: 0;
 }
 
-.toast-success .toast-icon {
-    background: #dcfce7;
-    color: #16a34a;
-}
-
-.toast-error .toast-icon {
-    background: #fee2e2;
-    color: #dc2626;
-}
+.toast-success .toast-icon { background: #dcfce7; color: #16a34a; }
+.toast-error   .toast-icon { background: #fee2e2; color: #dc2626; }
+.toast-warning .toast-icon { background: #fef3c7; color: #d97706; }
 
 /* ── Responsive ──────────────────────────────────────────────── */
 @media (max-width: 1024px) {
@@ -669,36 +634,23 @@ body {
     .left-panel {
         width: 100%;
         min-height: auto;
-        padding: 0;
     }
 
     .left-panel-inner { padding: 40px 24px; }
-
     .panel-headline { font-size: 1.8rem; }
     .panel-sub { max-width: 100%; }
-
-    .panel-features { display: none; } /* hide on mobile to save space */
-
-    .panel-trust {
-        justify-content: space-around;
-    }
+    .panel-features { display: none; }
 
     .right-panel {
         padding: 32px 16px;
         align-items: flex-start;
     }
 
-    .form-card {
-        padding: 32px 24px;
-    }
-
-    .form-row { grid-template-columns: 1fr; }
-
-    .nav-hint { display: none; }
+    .form-card { padding: 32px 24px; }
+    .nav-hint  { display: none; }
 }
 
 @media (max-width: 480px) {
-    .form-card { padding: 24px 18px; }
+    .form-card  { padding: 24px 18px; }
     .form-title { font-size: 1.3rem; }
-    .trust-sep { display: none; }
-}    
+}   

@@ -460,6 +460,30 @@ function downloadHTML() {
     try { alerts = Array.isArray(d.alerts)          ? d.alerts          : JSON.parse(d.alerts          || '[]'); } catch {}
     try { recs   = Array.isArray(d.recommendations) ? d.recommendations : JSON.parse(d.recommendations || '[]'); } catch {}
 
+    // Extract executive summary narrative from the DOM
+    const narrativeDiv = document.querySelector('.exec-narrative');
+    const executiveSummaryHTML = narrativeDiv ? narrativeDiv.innerHTML : '';
+
+    // Convert Chart.js canvas elements to base64 images
+    let revenueChartImg = '';
+    let productChartImg = '';
+    
+    try {
+        if (revenueTrendChart && revenueTrendChart.canvas) {
+            revenueChartImg = revenueTrendChart.toBase64Image();
+        }
+    } catch (e) {
+        console.warn('Could not convert revenue chart to image:', e);
+    }
+    
+    try {
+        if (productPerformanceChart && productPerformanceChart.canvas) {
+            productChartImg = productPerformanceChart.toBase64Image();
+        }
+    } catch (e) {
+        console.warn('Could not convert product chart to image:', e);
+    }
+
     const htmlContent = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -507,16 +531,20 @@ function downloadHTML() {
   <div class="diag-item"><span>Classifier Accuracy</span><span>${(parseFloat(d.classifier_accuracy) * 100).toFixed(2)}%</span></div>
 </div>
 
+${executiveSummaryHTML ? `<div class="section exec-summary-export">${executiveSummaryHTML}</div>` : ''}
+
 <div class="section">
   <h2>Revenue Trend</h2>
-  <table><tr><th>Period</th><th>Revenue</th></tr>
+  ${revenueChartImg ? `<img src="${revenueChartImg}" style="width:100%;max-width:800px;height:auto;border-radius:8px;margin-bottom:16px;"/>` : '<p>Chart data unavailable.</p>'}
+  <table style="margin-top:16px;"><tr><th>Period</th><th>Revenue</th></tr>
   ${buildTrendRows(d).map(r => `<tr><td>${r[0]}</td><td>${formatCurrency(r[1], currency)}</td></tr>`).join('')}
   </table>
 </div>
 
 <div class="section">
   <h2>Product Performance</h2>
-  <table><tr><th>Product</th><th>Sales Volume (units)</th></tr>
+  ${productChartImg ? `<img src="${productChartImg}" style="width:100%;max-width:800px;height:auto;border-radius:8px;margin-bottom:16px;"/>` : '<p>Chart data unavailable.</p>'}
+  <table style="margin-top:16px;"><tr><th>Product</th><th>Sales Volume (units)</th></tr>
   ${buildProductRows(d).map(r => `<tr><td>${r[0]}</td><td>${Number(r[1]).toLocaleString()}</td></tr>`).join('')}
   </table>
 </div>
@@ -552,3 +580,4 @@ function triggerDownload(blob, filename) {
     setTimeout(() => URL.revokeObjectURL(url), 5000);
 }    
       
+   
