@@ -9,11 +9,11 @@ $password = '';     // Default XAMPP MySQL password
 try {
     // Connect directly to our specific project database
     $pdo = new PDO("mysql:host=$host;dbname=$db_name;charset=utf8mb4", $username, $password);
-    
+
     // Throw exceptions if SQL errors happen so we can debug them instantly
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-    
+
 } catch (PDOException $e) {
     // If the connection fails, send a structured JSON error response to your frontend JavaScript
     header('Content-Type: application/json');
@@ -23,4 +23,15 @@ try {
     ]);
     exit();
 }
-?>
+
+/**
+ * Returns the shared PDO connection created above.
+ * Lets pages call getDBConnection() instead of relying on the
+ * global $pdo variable, without breaking any existing code that
+ * still uses $pdo directly after requiring this file.
+ */
+function getDBConnection() {
+    global $pdo;
+    return $pdo;
+}
+?>  
