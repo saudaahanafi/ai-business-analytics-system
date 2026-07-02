@@ -11,6 +11,7 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import r2_score, mean_absolute_error, accuracy_score
 
 warnings.filterwarnings("ignore")
 
@@ -27,7 +28,9 @@ def load_and_standardize_data(csv_path):
         "Price": ["price", "unit price", "unit_price", "rate", "selling price", "prise", "prices"],
         "Quantity_Sold": ["quantity_sold", "quantity", "qty", "qty sold", "quantity sold", "units sold", "units_sold", "sold", "quantity_solde"],
         "Stock": ["stock", "current stock", "inventory", "stock count", "stok", "available stock"],
-        "Date": ["date", "sales date", "transaction date", "day"]
+        "Date": ["date", "sales date", "transaction date", "day"],
+        "Rating": ["rating", "ratings", "stars", "star_rating", "review_rating", "customer_rating", "score"],
+        "Review": ["review", "reviews", "review_text", "comment", "comments", "feedback", "customer_review"]
     }
     
     new_columns = {}
@@ -99,6 +102,14 @@ def train_custom_model(csv_path, store_identifier):
     rf = RandomForestRegressor(n_estimators=100, random_state=42)
     rf.fit(X_train, y_train)
 
+    # FIXED: previously model_performance was hardcoded (r2=0.92, mae=0.0,
+    # accuracy=0.90) regardless of the actual data — every store's health
+    # score, diagnostics panel, and executive summary were built on fake
+    # numbers. Now computed for real from a held-out test split.
+    rf_preds = rf.predict(X_test)
+    rf_r2  = round(float(r2_score(y_test, rf_preds)), 4) if len(X_test) > 0 else 0.0
+    rf_mae = round(float(mean_absolute_error(y_test, rf_preds)), 2) if len(X_test) > 0 else 0.0
+
     demand_encoder = LabelEncoder()
     df["Demand_enc"] = demand_encoder.fit_transform(df["Demand_Level"].astype(str))
 
@@ -110,12 +121,15 @@ def train_custom_model(csv_path, store_identifier):
     classifier = DecisionTreeClassifier(random_state=42)
     classifier.fit(X_train_c, y_train_c)
 
+    cls_preds = classifier.predict(X_test_c)
+    cls_accuracy = round(float(accuracy_score(y_test_c, cls_preds)), 4) if len(X_test_c) > 0 else 0.0
+
     model_bundle = {
         "random_forest": rf, 
         "classifier": classifier,
         "model_performance": {
-            "random_forest": {"r2": 0.92, "mae": 0.0},
-            "demand_classifier": {"accuracy": 0.90}
+            "random_forest": {"r2": rf_r2, "mae": rf_mae},
+            "demand_classifier": {"accuracy": cls_accuracy}
         }
     }
     encoder_bundle = {
@@ -138,4 +152,4 @@ def train_custom_model(csv_path, store_identifier):
 if __name__ == "__main__":
     if len(sys.argv) < 3: 
         sys.exit(1)
-    train_custom_model(sys.argv[1], sys.argv[2]) 
+    train_custom_model(sys.argv[1], sys.argv[2])   

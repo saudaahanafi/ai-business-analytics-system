@@ -86,10 +86,12 @@ function populateResultsPage(data) {
         // Parse and render charts
         const revenueTrendLabels = JSON.parse(data.revenue_trend_labels || '[]');
         const revenueTrendData   = JSON.parse(data.revenue_trend_data   || '[]');
+        const predictedTrendData = JSON.parse(data.predicted_revenue_trend_data || '[]');
         const productLabels      = JSON.parse(data.product_labels       || '[]');
         const productData        = JSON.parse(data.product_data         || '[]');
 
-        renderRevenueChart(revenueTrendLabels, revenueTrendData, activeCurrency);
+        renderRevenueChart(revenueTrendLabels, revenueTrendData, activeCurrency, predictedTrendData,
+            JSON.parse(data.future_revenue_forecast || 'null'));
         renderProductChart(productLabels, productData, activeCurrency);
 
         // Parse and display insights
@@ -98,7 +100,19 @@ function populateResultsPage(data) {
 
         displayRisks(alerts);
         displayRecommendations(recommendations);
-        
+
+        // New features
+        renderHealthGauge(data);
+        renderDemandBreakdownChart(JSON.parse(data.demand_breakdown || 'null'));
+        renderInventoryBars(JSON.parse(data.inventory_status || '[]'));
+        initPriceSimulator(
+            JSON.parse(data.price_simulator_data || '{}'),
+            parseFloat(data.avg_transaction_value || 0),
+            activeCurrency
+        );
+        renderSatisfactionCard(JSON.parse(data.review_summary || 'null'), JSON.parse(data.review_theme_analysis || 'null'));
+        renderForecastPills(JSON.parse(data.future_revenue_forecast || 'null'), activeCurrency);
+
         // Build and display executive summary narrative
         buildExecutiveSummaryNarrative(data, activeCurrency);
 
@@ -108,23 +122,207 @@ function populateResultsPage(data) {
     }
 }
 
+// Resolve a 0-100 health score: prefer the server-computed value (accurate),
+// fall back to a corrected client-side calc for older reports that predate it.
+function resolveHealthScore(data) {
+    if (data.health_score !== undefined && data.health_score !== null && data.health_score !== '') {
+        return Math.max(0, Math.min(100, Math.round(parseFloat(data.health_score))));
+    }
+    const margin = parseFloat((data.profit_margin || '0').toString().replace('%', ''));
+    const r2  = parseFloat(data.model_r2 || 0);
+    const acc = parseFloat(data.classifier_accuracy || 0);
+    // NOTE: this is the corrected formula (no stray *100) — the old inline
+    // version multiplied by 100 a second time and always clamped to 100.
+    const score = (r2 * 40) + (acc * 40) + (Math.min(margin / 30, 1) * 20);
+    return Math.max(0, Math.min(100, Math.round(score)));
+}
+
+// Animate the circular health gauge in the executive summary header
+function renderHealthGauge(data) {
+    const score = resolveHealthScore(data);
+    const circumference = 213.6; // 2 * PI * r(34)
+    const offset = circumference - (score / 100) * circumference;
+
+    const fill = document.getElementById('healthGaugeFill');
+    const valueEl = document.getElementById('healthScoreValue');
+    const labelEl = document.getElementById('healthScoreLabel');
+    if (!fill || !valueEl) return;
+
+    const color = score >= 80 ? '#ffffff' : score >= 60 ? '#fef3c7' : '#fecaca';
+    fill.style.stroke = color;
+
+    requestAnimationFrame(() => {
+        fill.style.strokeDashoffset = offset;
+    });
+    valueEl.textContent = score;
+    if (labelEl) {
+        labelEl.textContent = score >= 80 ? 'Strong Health' : score >= 60 ? 'Moderate Health' : 'Needs Attention';
+    }
+}
+
+// Doughnut chart of Low/Medium/High predicted demand across products
+let demandBreakdownChart = null;
+function renderDemandBreakdownChart(breakdown) {
+    const canvas = document.getElementById('demandBreakdownChart');
+    if (!canvas || !breakdown) return;
+    const ctx = canvas.getContext('2d');
+    if (demandBreakdownChart) { demandBreakdownChart.destroy(); }
+
+    demandBreakdownChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: breakdown.labels || ['Low', 'Medium', 'High'],
+            datasets: [{
+                data: breakdown.data || [0, 0, 0],
+                backgroundColor: ['#38bdf8', '#f59e0b', '#ef4444'],
+                borderColor: '#ffffff',
+                borderWidth: 3,
+                hoverOffset: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            cutout: '65%',
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: { color: '#334155', font: { weight: '600', size: 12 }, padding: 14 }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(15,23,42,0.85)',
+                    padding: 12,
+                    borderRadius: 8,
+                    callbacks: {
+                        label: function(context) {
+                            return context.label + ': ' + context.parsed + ' product(s)';
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Visual stock-level bars per product
+function renderInventoryBars(inventoryStatus) {
+    const container = document.getElementById('inventoryBarsList');
+    if (!container) return;
+
+    if (!inventoryStatus || inventoryStatus.length === 0) {
+        container.innerHTML = '<p class="inv-loading">No inventory data available for this upload.</p>';
+        return;
+    }
+
+    const maxScale = Math.max(...inventoryStatus.map(i => i.stock), inventoryStatus[0].med_thresh * 2, 1);
+
+    container.innerHTML = inventoryStatus.map(item => {
+        const pct = item.level === 'untracked' ? 4 : Math.max(4, Math.min(100, Math.round((item.stock / maxScale) * 100)));
+        const levelText = {
+            healthy: 'Healthy', medium: 'Restock soon', high: 'Critical', untracked: 'Not tracked'
+        }[item.level] || 'Unknown';
+        return `
+            <div class="inv-bar-row">
+                <div class="inv-bar-top">
+                    <span class="inv-bar-product">${item.product}</span>
+                    <span class="inv-bar-stock">${item.level === 'untracked' ? levelText : item.stock + ' units · ' + levelText}</span>
+                </div>
+                <div class="inv-bar-track">
+                    <div class="inv-bar-fill ${item.level}" style="width:${pct}%;"></div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// ── Price What-If Simulator ─────────────────────────────────────
+let _simData = {};
+let _simAvgTxnValue = 0;
+let _simCurrency = 'USD';
+
+function initPriceSimulator(priceSimData, avgTxnValue, currency) {
+    _simData = priceSimData || {};
+    _simAvgTxnValue = avgTxnValue || 0;
+    _simCurrency = currency || 'USD';
+
+    const select = document.getElementById('simProductSelect');
+    if (!select) return;
+
+    const productNames = Object.keys(_simData);
+    if (productNames.length === 0) {
+        select.innerHTML = '<option>No product data available</option>';
+        return;
+    }
+
+    select.innerHTML = productNames.map(p => `<option value="${p}">${p}</option>`).join('');
+    runPriceSimulator();
+}
+
+// Simple, transparent constant-elasticity (-1) estimate: % change in price
+// produces an inverse % change in quantity, so revenue impact is a function
+// of price^2 relative to the baseline — clearly labeled as directional only.
+function runPriceSimulator() {
+    const select = document.getElementById('simPriceSlider');
+    const productSelect = document.getElementById('simProductSelect');
+    if (!select || !productSelect) return;
+
+    const pctChange = parseInt(select.value, 10) || 0;
+    const product = productSelect.value;
+    const stats = _simData[product];
+
+    document.getElementById('simPriceLabel').textContent = (pctChange > 0 ? '+' : '') + pctChange + '%';
+
+    if (!stats) {
+        document.getElementById('simNewPrice').textContent = '--';
+        document.getElementById('simRevenueImpact').textContent = '--';
+        document.getElementById('simCustomerImpact').textContent = '--';
+        return;
+    }
+
+    const priceMultiplier = 1 + (pctChange / 100);
+    const elasticity = stats.elasticity_assumed || -1;
+    const qtyMultiplier = Math.max(0, 1 + elasticity * (pctChange / 100));
+
+    const baseRevenue = stats.avg_price * stats.avg_qty;
+    const newPrice = stats.avg_price * priceMultiplier;
+    const newQty = stats.avg_qty * qtyMultiplier;
+    const newRevenue = newPrice * newQty;
+    const revenueDelta = newRevenue - baseRevenue;
+    const revenueDeltaPct = baseRevenue > 0 ? (revenueDelta / baseRevenue) * 100 : 0;
+
+    document.getElementById('simNewPrice').textContent = formatCurrency(newPrice, _simCurrency);
+
+    const impactEl = document.getElementById('simRevenueImpact');
+    impactEl.textContent = (revenueDelta >= 0 ? '+' : '') + formatCurrency(revenueDelta, _simCurrency) +
+        ' (' + (revenueDeltaPct >= 0 ? '+' : '') + revenueDeltaPct.toFixed(1) + '%)';
+    impactEl.style.color = revenueDelta >= 0 ? 'var(--success)' : 'var(--danger)';
+
+    if (_simAvgTxnValue > 0) {
+        const orders = revenueDelta / _simAvgTxnValue;
+        const ordersText = (orders >= 0 ? '+' : '') + Math.round(orders) + ' orders';
+        document.getElementById('simCustomerImpact').textContent = ordersText;
+    } else {
+        document.getElementById('simCustomerImpact').textContent = 'N/A';
+    }
+}
+
 // Build detailed executive summary narrative
 function buildExecutiveSummaryNarrative(data, currency) {
     const margin = parseFloat((data.profit_margin || '0').replace('%', ''));
     const r2 = parseFloat(data.model_r2 || 0);
     const acc = parseFloat(data.classifier_accuracy || 0);
-    const healthScore = Math.min(100, Math.round((r2 * 40 + acc * 40 + Math.min(margin / 30, 1) * 20) * 100));
-    
+    const healthScore = resolveHealthScore(data);
+
     const narrativeDiv = document.querySelector('.exec-summary');
     if (!narrativeDiv) return; // No summary container in results page
-    
+
     const summaryBody = document.createElement('div');
     summaryBody.className = 'exec-narrative';
     summaryBody.style.cssText = `
         margin-top: 16px; padding: 20px; background: rgba(14,165,233,0.04);
         border-radius: 8px; line-height: 1.6; color: #334155; font-size: 14px;
     `;
-    
+
     const narrativePoints = [
         `<strong>Business Health Assessment:</strong> Your organization achieved a health score of <strong>${healthScore}/100</strong>, ` +
             (healthScore >= 80 ? 'indicating strong overall performance with solid financial and operational metrics.' :
@@ -153,32 +351,177 @@ function buildExecutiveSummaryNarrative(data, currency) {
     }
 }
 
-// Render revenue trend chart
-function renderRevenueChart(labels, data, currencyCode) {
+// Customer satisfaction card — only shown if the CSV included a Rating column
+function renderSatisfactionCard(reviewSummary, themeAnalysis) {
+    const card = document.getElementById('satisfactionCard');
+    if (!card) return;
+
+    if (!reviewSummary || reviewSummary.overall_avg_rating === undefined) {
+        card.style.display = 'none';
+        return;
+    }
+    card.style.display = '';
+
+    const avg = reviewSummary.overall_avg_rating;
+    document.getElementById('avgRatingValue').textContent = avg.toFixed(1);
+    document.getElementById('avgRatingStars').textContent = '★'.repeat(Math.round(avg)) + '☆'.repeat(5 - Math.round(avg));
+    document.getElementById('ratingCount').textContent = reviewSummary.review_count + ' rating(s)';
+
+    const dist = reviewSummary.rating_distribution || {};
+    const maxCount = Math.max(...Object.values(dist), 1);
+    const distEl = document.getElementById('ratingDistribution');
+    distEl.innerHTML = [5, 4, 3, 2, 1].map(star => {
+        const count = dist[String(star)] || 0;
+        const pct = Math.round((count / maxCount) * 100);
+        return `
+            <div class="dist-row">
+                <span class="dist-label">${star}★</span>
+                <div class="dist-track"><div class="dist-fill" style="width:${pct}%;"></div></div>
+                <span>${count}</span>
+            </div>
+        `;
+    }).join('');
+
+    const productRatings = reviewSummary.product_avg_rating || {};
+    const lowRated = Object.entries(productRatings).filter(([, r]) => r < 3.0).map(([p]) => p);
+    const atRiskEl = document.getElementById('atRiskProducts');
+    if (lowRated.length > 0) {
+        atRiskEl.className = 'at-risk-products visible';
+        atRiskEl.textContent = '⚠ Below 3★ average: ' + lowRated.join(', ');
+    } else {
+        atRiskEl.className = 'at-risk-products';
+        atRiskEl.textContent = '';
+    }
+
+    // Keyword-based review theme analysis (only present if CSV had a Review column)
+    const themesEl = document.getElementById('feedbackThemes');
+    if (!themesEl) return;
+
+    if (!themeAnalysis || !themeAnalysis.theme_counts || Object.keys(themeAnalysis.theme_counts).length === 0) {
+        themesEl.innerHTML = '';
+        return;
+    }
+
+    const sortedThemes = Object.entries(themeAnalysis.theme_counts).sort((a, b) => b[1] - a[1]);
+    let html = '<div style="font-size:0.75rem;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.04em;margin-top:6px;">Common Feedback Themes</div>';
+    html += sortedThemes.map(([theme, count]) => `
+        <div class="feedback-theme-row">
+            <span class="feedback-theme-name">${theme}</span>
+            <span class="feedback-theme-count">${count} mention(s)</span>
+        </div>
+    `).join('');
+
+    const quotes = themeAnalysis.sample_quotes || {};
+    const quoteEntries = Object.entries(quotes).slice(0, 2);
+    if (quoteEntries.length > 0) {
+        html += quoteEntries.map(([product, quote]) => `
+            <div class="feedback-quote">"${quote}" — ${product}</div>
+        `).join('');
+    }
+
+    themesEl.innerHTML = html;
+}
+
+// Forecast pills — next N months, forward of the historical data
+function renderForecastPills(forecast, currencyCode) {
+    const container = document.getElementById('forecastPills');
+    const methodText = document.getElementById('forecastMethodText');
+    if (!container) return;
+
+    if (!forecast || !forecast.labels || forecast.labels.length === 0) {
+        container.innerHTML = '<p class="inv-loading">Not enough historical data to forecast yet.</p>';
+        return;
+    }
+
+    if (methodText && forecast.method) {
+        methodText.textContent = 'Method: ' + forecast.method;
+    }
+
+    container.innerHTML = forecast.labels.map((label, i) => `
+        <div class="forecast-pill">
+            <span class="forecast-pill-month">${label}</span>
+            <span class="forecast-pill-value">${formatCurrency(forecast.data[i], currencyCode)}</span>
+        </div>
+    `).join('');
+}
+
+// Render revenue trend chart (actual vs predicted vs future forecast)
+function renderRevenueChart(labels, data, currencyCode, predictedData, forecast) {
     const ctx = document.getElementById('revenueTrendChart').getContext('2d');
 
     if (revenueTrendChart) { revenueTrendChart.destroy(); }
 
+    let chartLabels = labels;
+    let actualSeries = data;
+    let predictedSeries = predictedData || [];
+    const datasets = [];
+
+    if (forecast && forecast.labels && forecast.labels.length > 0) {
+        chartLabels = labels.concat(forecast.labels);
+        actualSeries = data.concat(new Array(forecast.labels.length).fill(null));
+        if (predictedSeries.length > 0) {
+            predictedSeries = predictedSeries.concat(new Array(forecast.labels.length).fill(null));
+        }
+        // bridge the forecast line to the last actual point so it looks continuous
+        const forecastSeries = new Array(labels.length - 1).fill(null)
+            .concat([data[data.length - 1]])
+            .concat(forecast.data);
+
+        datasets.push({
+            label: `Forecast Revenue (${currencyCode.toUpperCase()})`,
+            data: forecastSeries,
+            borderColor: '#10b981',
+            backgroundColor: 'rgba(16,185,129,0.05)',
+            borderWidth: 2,
+            borderDash: [2, 3],
+            tension: 0.4,
+            fill: false,
+            pointBackgroundColor: '#10b981',
+            pointBorderColor: '#ffffff',
+            pointBorderWidth: 2,
+            pointRadius: 3,
+            pointHoverRadius: 6
+        });
+    }
+
+    datasets.unshift({
+        label: `Actual Revenue (${currencyCode.toUpperCase()})`,
+        data: actualSeries,
+        borderColor: '#0ea5e9',
+        backgroundColor: 'rgba(14,165,233,0.08)',
+        borderWidth: 2.5,
+        tension: 0.4,
+        fill: true,
+        pointBackgroundColor: '#0ea5e9',
+        pointBorderColor: '#ffffff',
+        pointBorderWidth: 2,
+        pointRadius: 4,
+        pointHoverRadius: 7,
+        pointHoverBackgroundColor: '#0284c7'
+    });
+
+    if (predictedSeries.length > 0) {
+        datasets.splice(1, 0, {
+            label: `Predicted Revenue (${currencyCode.toUpperCase()})`,
+            data: predictedSeries,
+            borderColor: '#8b5cf6',
+            backgroundColor: 'rgba(139,92,246,0.05)',
+            borderWidth: 2,
+            borderDash: [6, 4],
+            tension: 0.4,
+            fill: false,
+            pointBackgroundColor: '#8b5cf6',
+            pointBorderColor: '#ffffff',
+            pointBorderWidth: 2,
+            pointRadius: 3,
+            pointHoverRadius: 6,
+            pointHoverBackgroundColor: '#7c3aed'
+        });
+    }
+
     revenueTrendChart = new Chart(ctx, {
         type: 'line',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: `Monthly Revenue (${currencyCode.toUpperCase()})`,
-                data: data,
-                borderColor: '#0ea5e9',
-                backgroundColor: 'rgba(14,165,233,0.08)',
-                borderWidth: 2.5,
-                tension: 0.4,
-                fill: true,
-                pointBackgroundColor: '#0ea5e9',
-                pointBorderColor: '#ffffff',
-                pointBorderWidth: 2,
-                pointRadius: 4,
-                pointHoverRadius: 7,
-                pointHoverBackgroundColor: '#0284c7'
-            }]
-        },
+        data: { labels: chartLabels, datasets: datasets },
         options: {
             responsive: true,
             maintainAspectRatio: true,
@@ -200,7 +543,8 @@ function renderRevenueChart(labels, data, currencyCode) {
                     bodyFont: { size: 12 },
                     callbacks: {
                         label: function(context) {
-                            return 'Revenue: ' + formatCurrency(context.parsed.y, currencyCode);
+                            if (context.parsed.y === null) return null;
+                            return context.dataset.label.split(' (')[0] + ': ' + formatCurrency(context.parsed.y, currencyCode);
                         }
                     }
                 }
@@ -396,19 +740,23 @@ function downloadCSV() {
         ['Profit Margin',    parseFloat(d.profit_margin).toFixed(1) + '%'],
         ['Top Product',      d.top_product || 'N/A'],
         ['Industry',         d.industry    || 'General'],
+        ['Business Health Score', resolveHealthScore(d) + ' / 100'],
         [],
         ['MODEL DIAGNOSTICS'],
         ['Model Engine',         d.selected_model         || 'N/A'],
         ['R² Score',             (parseFloat(d.model_r2)             * 100).toFixed(2) + '%'],
         ['Classifier Accuracy',  (parseFloat(d.classifier_accuracy)  * 100).toFixed(2) + '%'],
         [],
-        ['REVENUE TREND'],
-        ['Period', 'Revenue'],
+        ['REVENUE TREND (Actual vs Predicted)'],
+        ['Period', 'Actual Revenue', 'Predicted Revenue'],
         ...buildTrendRows(d),
         [],
         ['PRODUCT PERFORMANCE'],
         ['Product', 'Sales Volume'],
         ...buildProductRows(d),
+        [],
+        ['PREDICTED DEMAND BREAKDOWN'],
+        ...buildDemandRows(d),
         [],
         ['RISKS & WARNINGS'],
         ...buildListRows(d.alerts),
@@ -427,7 +775,16 @@ function buildTrendRows(d) {
     try {
         const labels = JSON.parse(d.revenue_trend_labels || '[]');
         const vals   = JSON.parse(d.revenue_trend_data   || '[]');
-        return labels.map((l, i) => [l, vals[i] || 0]);
+        const predVals = JSON.parse(d.predicted_revenue_trend_data || '[]');
+        return labels.map((l, i) => [l, vals[i] || 0, predVals[i] !== undefined ? predVals[i] : 'N/A']);
+    } catch { return [['N/A', 'N/A', 'N/A']]; }
+}
+
+function buildDemandRows(d) {
+    try {
+        const breakdown = JSON.parse(d.demand_breakdown || 'null');
+        if (!breakdown) return [['No demand data available']];
+        return breakdown.labels.map((label, i) => [label + ' Demand', breakdown.data[i] + ' product(s)']);
     } catch { return [['N/A', 'N/A']]; }
 }
 
@@ -578,6 +935,4 @@ function triggerDownload(blob, filename) {
     link.click();
     document.body.removeChild(link);
     setTimeout(() => URL.revokeObjectURL(url), 5000);
-}    
-      
-   
+}

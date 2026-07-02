@@ -118,7 +118,11 @@ if (isset($_GET['upload_id'])) {
             sa.total_revenue, sa.net_profit, sa.profit_margin, sa.roi, sa.currency,
             sa.top_product, sa.revenue_trend_labels, sa.revenue_trend_data,
             sa.product_labels, sa.product_data, sa.industry,
-            ar.alerts, ar.recommendations, ar.model_r2, ar.classifier_accuracy, ar.selected_model
+            sa.predicted_revenue_trend_labels, sa.predicted_revenue_trend_data,
+            sa.price_simulator_data, sa.inventory_status, sa.avg_transaction_value,
+            sa.transaction_count, sa.health_score, sa.review_summary, sa.future_revenue_forecast, sa.review_theme_analysis,
+            ar.alerts, ar.recommendations, ar.model_r2, ar.classifier_accuracy, ar.selected_model,
+            ar.demand_breakdown
         FROM uploads u
         INNER JOIN sales_analytics sa      ON u.id = sa.upload_id
         INNER JOIN ai_predictions_results ar ON u.id = ar.upload_id
@@ -234,4 +238,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['csv_file'])) {
 // ── Catch-all for unrecognised requests ───────────────────────
 http_response_code(400);
 echo json_encode(['error' => 'Invalid request.']);
-?>   
+?>  

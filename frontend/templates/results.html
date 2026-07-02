@@ -141,8 +141,16 @@
                 <h3>Executive Performance Summary</h3>
                 <p>Snapshot of your most critical business indicators from this report</p>
             </div>
-            <div class="exec-health-badge">
-                Business Health: <strong>Analysis Complete ✓</strong>
+            <div class="exec-health-badge exec-health-gauge">
+                <svg viewBox="0 0 80 80" class="health-gauge-svg">
+                    <circle cx="40" cy="40" r="34" class="health-gauge-track"/>
+                    <circle cx="40" cy="40" r="34" class="health-gauge-fill" id="healthGaugeFill"/>
+                </svg>
+                <div class="health-gauge-text">
+                    <span id="healthScoreValue">--</span>
+                    <small>/ 100</small>
+                </div>
+                <span class="health-gauge-label" id="healthScoreLabel">Business Health</span>
             </div>
         </div>
         <div class="exec-stats-row">
@@ -168,9 +176,9 @@
             <div class="chart-card">
                 <div class="chart-card-header">
                     <h3>Revenue Trend Analysis</h3>
-                    <span class="chart-badge">Monthly</span>
+                    <span class="chart-badge">Actual vs. Predicted</span>
                 </div>
-                <p class="chart-sub-text">Period-over-period revenue performance and trajectory</p>
+                <p class="chart-sub-text">Period-over-period revenue — solid line is actual, dashed line is the model's prediction</p>
                 <canvas id="revenueTrendChart"></canvas>
             </div>
             <div class="chart-card">
@@ -180,6 +188,110 @@
                 </div>
                 <p class="chart-sub-text">Units sold per product — identifying your strongest SKUs</p>
                 <canvas id="productPerformanceChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Demand & Inventory Intelligence -->
+    <div>
+        <span class="section-label">Demand & Inventory Intelligence</span>
+        <div class="charts-row">
+            <div class="chart-card">
+                <div class="chart-card-header">
+                    <h3>Predicted Demand Breakdown</h3>
+                    <span class="chart-badge">AI Classifier</span>
+                </div>
+                <p class="chart-sub-text">How many of your products are predicted to see Low, Medium, or High demand</p>
+                <canvas id="demandBreakdownChart"></canvas>
+            </div>
+            <div class="chart-card">
+                <div class="chart-card-header">
+                    <h3>Inventory Stock Levels</h3>
+                    <span class="chart-badge">Live Snapshot</span>
+                </div>
+                <p class="chart-sub-text">Current stock per product, relative to your restock thresholds</p>
+                <div id="inventoryBarsList" class="inventory-bars-list">
+                    <p class="inv-loading">Loading inventory levels...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Price What-If Simulator -->
+    <div>
+        <span class="section-label">Price What-If Simulator</span>
+        <div class="simulator-card">
+            <div class="simulator-header">
+                <div class="insight-icon rec-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+                        <path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <div>
+                    <h3>Estimate the impact of a price change</h3>
+                    <p>A simplified, transparent estimate — assumes demand shifts proportionally opposite to price (constant elasticity of -1).</p>
+                </div>
+            </div>
+            <div class="simulator-body">
+                <div class="simulator-controls">
+                    <label for="simProductSelect">Product</label>
+                    <select id="simProductSelect" class="simulator-select" onchange="runPriceSimulator()"></select>
+
+                    <label for="simPriceSlider">
+                        Price change: <span id="simPriceLabel">0%</span>
+                    </label>
+                    <input type="range" id="simPriceSlider" class="simulator-slider" min="-50" max="50" value="0" step="5" oninput="runPriceSimulator()">
+                    <div class="simulator-slider-scale"><span>-50%</span><span>0%</span><span>+50%</span></div>
+                </div>
+                <div class="simulator-results">
+                    <div class="sim-result">
+                        <div class="sim-result-label">New Estimated Price</div>
+                        <div class="sim-result-value" id="simNewPrice">--</div>
+                    </div>
+                    <div class="sim-result">
+                        <div class="sim-result-label">Estimated Revenue Impact</div>
+                        <div class="sim-result-value" id="simRevenueImpact">--</div>
+                    </div>
+                    <div class="sim-result">
+                        <div class="sim-result-label">Est. Additional Orders Needed</div>
+                        <div class="sim-result-value" id="simCustomerImpact">--</div>
+                    </div>
+                </div>
+            </div>
+            <p class="simulator-disclaimer">This is a directional estimate for planning discussions, not a guaranteed forecast — real demand response varies by product, season, and competition.</p>
+        </div>
+    </div>
+
+    <!-- Future Outlook -->
+    <div>
+        <span class="section-label">Future Outlook</span>
+        <div class="charts-row">
+            <div class="chart-card" id="satisfactionCard" style="display:none;">
+                <div class="chart-card-header">
+                    <h3>Customer Satisfaction</h3>
+                    <span class="chart-badge">From CSV Ratings</span>
+                </div>
+                <p class="chart-sub-text">Based on the Rating column in your uploaded CSV</p>
+                <div class="satisfaction-body">
+                    <div class="satisfaction-score">
+                        <div class="satisfaction-score-value" id="avgRatingValue">--</div>
+                        <div class="satisfaction-score-stars" id="avgRatingStars"></div>
+                        <div class="satisfaction-score-count" id="ratingCount"></div>
+                    </div>
+                    <div class="satisfaction-dist" id="ratingDistribution"></div>
+                </div>
+                <div id="atRiskProducts" class="at-risk-products"></div>
+                <div id="feedbackThemes" class="feedback-themes"></div>
+            </div>
+            <div class="chart-card">
+                <div class="chart-card-header">
+                    <h3>Revenue Forecast</h3>
+                    <span class="chart-badge">Next 3 Months</span>
+                </div>
+                <p class="chart-sub-text" id="forecastMethodText">Projected forward from your historical revenue trend</p>
+                <div class="forecast-pills" id="forecastPills">
+                    <p class="inv-loading">Not enough historical data to forecast yet.</p>
+                </div>
             </div>
         </div>
     </div>
@@ -308,5 +420,4 @@
 
 <script src="../static/js/results.js"></script>
 </body>
-</html>     
-   
+</html>   
